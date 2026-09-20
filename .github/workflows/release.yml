@@ -48,6 +48,10 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Derive lowercase image namespace
+        id: namespace
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
@@ -65,7 +69,7 @@ jobs:
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.target }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/laravelbd-${{ matrix.name }}:${{ steps.version.outputs.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.namespace.outputs.owner }}/laravelbd-${{ matrix.name }}:${{ steps.version.outputs.version }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
