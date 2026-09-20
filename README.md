@@ -61,7 +61,7 @@ Leave `CLOUDFLARE_IMAGES_ACCOUNT_ID`, `CLOUDFLARE_IMAGES_API_TOKEN`, and `CLOUDF
 
 ## Production
 
-Copy `docker/env.example` to `.env` on the server. The file lists every key `compose.prod.yml` interpolates and the app reads. At minimum set:
+Copy `docker/env.production.example` to `.env` on the server and `chmod 600` it. It lists only the keys production needs; every value marked `CHANGE ME` must be filled in:
 
 - `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, and a generated `APP_KEY`
 - `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` (required by Compose)
@@ -164,7 +164,7 @@ The server has no `.env` yet, so the first release needs it in place beforehand:
 
 ```sh
 sudo mkdir -p /opt/laravelbd
-# copy compose.prod.yml from this repo, then create .env from docker/env.example
+# copy compose.prod.yml from this repo, then create .env from docker/env.production.example
 sudo chmod 600 /opt/laravelbd/.env
 ```
 
