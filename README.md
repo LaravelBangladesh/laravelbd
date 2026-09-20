@@ -63,18 +63,59 @@ Leave `CLOUDFLARE_IMAGES_ACCOUNT_ID`, `CLOUDFLARE_IMAGES_API_TOKEN`, and `CLOUDF
 
 Copy `docker/env.example` to `.env` on the server. The file lists every key `compose.prod.yml` interpolates and the app reads. At minimum set:
 
-- `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `APP_PORT` (defaults to 80), and a generated `APP_KEY`
+- `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, and a generated `APP_KEY`
 - `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` (required by Compose)
 - `SESSION_SECURE_COOKIE=true` and `SESSION_DOMAIN` behind HTTPS
+- `ORIGIN_CERT_PATH` (defaults to `/etc/ssl/cloudflare`), plus `HTTP_PORT` and `HTTPS_PORT` if the defaults of 80 and 443 do not suit
 - Real SMTP values (`MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`)
 
 Do not commit secrets.
+
+### TLS
+
+Traffic terminates at Cloudflare and is re-encrypted to the origin, so no plaintext
+application traffic crosses the network. Set the domain's DNS record to **Proxied**
+(orange cloud) and SSL/TLS mode to **Full (strict)**.
+
+Create a Cloudflare Origin Certificate (Cloudflare dashboard → SSL/TLS → Origin
+Server → Create Certificate) and place it on the server as `origin.pem` and
+`origin.key` inside `ORIGIN_CERT_PATH`:
+
+```sh
+sudo mkdir -p /etc/ssl/cloudflare
+sudo install -m 600 /dev/null /etc/ssl/cloudflare/origin.key
+# paste the private key into the file above, then the certificate:
+sudo install -m 644 /dev/null /etc/ssl/cloudflare/origin.pem
+```
+
+The private key is secret and must never be committed. Origin certificates are
+trusted only by Cloudflare, so a direct request to the server's IP fails the TLS
+handshake rather than exposing the site.
+
+As defence in depth, restrict the origin to Cloudflare so the app is unreachable
+except through the edge:
+
+```sh
+for ip in $(curl -s https://www.cloudflare.com/ips-v4); do sudo ufw allow from "$ip" to any port 443 proto tcp; done
+for ip in $(curl -s https://www.cloudflare.com/ips-v6); do sudo ufw allow from "$ip" to any port 443 proto tcp; done
+sudo ufw allow OpenSSH
+sudo ufw --force enable
+```
+
+Laravel trusts these same ranges (`config/cloudflare-proxies.php`) so that
+`X-Forwarded-Proto` and the visitor's real IP are honoured from Cloudflare and
+ignored from anyone else. Refresh that list if Cloudflare publishes new ranges.
+
+### Deploy
 
 ```sh
 docker compose -f compose.prod.yml build
 docker compose -f compose.prod.yml up -d
 docker compose -f compose.prod.yml exec app php artisan migrate --force
 ```
+
+Config, route, and view caches are rebuilt and `storage:link` is recreated by the
+container entrypoint on every start, so a deploy is just a rebuild and restart.
 
 ## License
 

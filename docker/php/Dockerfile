@@ -80,6 +80,8 @@ COPY --chown=www-data:www-data . .
 COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
 COPY --from=frontend --chown=www-data:www-data /app/bootstrap/ssr ./bootstrap/ssr
 
+COPY --chmod=0755 docker/php/entrypoint.sh /usr/local/bin/entrypoint
+
 RUN composer dump-autoload --optimize --no-dev \
     && php artisan package:discover --ansi \
     && chown -R www-data:www-data storage bootstrap/cache
@@ -87,5 +89,7 @@ RUN composer dump-autoload --optimize --no-dev \
 USER www-data
 
 EXPOSE 9000
+
+ENTRYPOINT ["entrypoint"]
 
 CMD ["php-fpm"]
