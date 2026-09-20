@@ -45,3 +45,5 @@ jobs:
 
       - name: Run CI Checks
         run: composer ci:check
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: 1
