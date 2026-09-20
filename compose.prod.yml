@@ -1,8 +1,17 @@
+# Promtail ships these logs to Loki; rotation keeps the local json-file buffer
+# bounded so a log spike cannot fill the disk.
+x-logging: &default-logging
+    driver: json-file
+    options:
+        max-size: '10m'
+        max-file: '3'
+
 services:
     app:
         image: ${APP_IMAGE:-ghcr.io/laravelbangladesh/laravelbd-app}:${APP_IMAGE_TAG:?set APP_IMAGE_TAG to the release version, e.g. 1.2.3}
         pull_policy: always
         restart: unless-stopped
+        logging: *default-logging
         working_dir: /var/www/html
         env_file:
             - .env
@@ -23,6 +32,7 @@ services:
         image: ${SSR_IMAGE:-ghcr.io/laravelbangladesh/laravelbd-ssr}:${APP_IMAGE_TAG:?set APP_IMAGE_TAG to the release version, e.g. 1.2.3}
         pull_policy: always
         restart: unless-stopped
+        logging: *default-logging
         networks:
             - laravel
 
@@ -30,6 +40,7 @@ services:
         image: ${APP_IMAGE:-ghcr.io/laravelbangladesh/laravelbd-app}:${APP_IMAGE_TAG:?set APP_IMAGE_TAG to the release version, e.g. 1.2.3}
         pull_policy: always
         restart: unless-stopped
+        logging: *default-logging
         working_dir: /var/www/html
         env_file:
             - .env
@@ -48,6 +59,7 @@ services:
         image: ${NGINX_IMAGE:-ghcr.io/laravelbangladesh/laravelbd-nginx}:${APP_IMAGE_TAG:?set APP_IMAGE_TAG to the release version, e.g. 1.2.3}
         pull_policy: always
         restart: unless-stopped
+        logging: *default-logging
         ports:
             - '${HTTP_PORT:-80}:80'
             - '${HTTPS_PORT:-443}:443'
@@ -77,6 +89,7 @@ services:
     postgres:
         image: postgres:18-alpine
         restart: unless-stopped
+        logging: *default-logging
         environment:
             POSTGRES_DB: ${DB_DATABASE}
             POSTGRES_USER: ${DB_USERNAME}
@@ -95,6 +108,7 @@ services:
     redis:
         image: redis:8-alpine
         restart: unless-stopped
+        logging: *default-logging
         command: redis-server --appendonly yes
         volumes:
             - redis_data:/data
