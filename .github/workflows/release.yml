@@ -1,0 +1,102 @@
+name: release
+
+# Tag pushes only. Merges to main run the tests workflow and deploy nothing,
+# so production changes exactly when a version tag is pushed.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    strategy:
+      matrix:
+        include:
+          - name: app
+            dockerfile: docker/php/Dockerfile
+            target: production
+          - name: ssr
+            dockerfile: docker/ssr/Dockerfile
+            target: ''
+          - name: nginx
+            dockerfile: docker/nginx/Dockerfile
+            target: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Derive version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to the container registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/laravelbd-${{ matrix.name }}:${{ steps.version.outputs.version }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy ${{ needs.build.outputs.version }} to the server
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: VERSION
+          script_stop: true
+          script: |
+            set -eu
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            # Secrets stay on the server and are never written by CI. Only the
+            # release version is rewritten, so an edited .env survives a deploy.
+            sed -i "s|^APP_IMAGE_TAG=.*|APP_IMAGE_TAG=${VERSION}|" .env
+            sed -i "s|^APP_VERSION=.*|APP_VERSION=${VERSION}|" .env
+            grep -q '^APP_IMAGE_TAG=' .env || echo "APP_IMAGE_TAG=${VERSION}" >> .env
+            grep -q '^APP_VERSION=' .env || echo "APP_VERSION=${VERSION}" >> .env
+
+            docker compose -f compose.prod.yml pull
+            docker compose -f compose.prod.yml up -d
+            docker compose -f compose.prod.yml exec -T app php artisan migrate --force
+            docker image prune -f
