@@ -1,0 +1,24 @@
+{
+    "id": "/",
+    "name": "Laravel Bangladesh",
+    "short_name": "Laravel BD",
+    "description": "The Laravel community of Bangladesh: meetups, workshops, talks and a directory of artisans and companies.",
+    "start_url": "/",
+    "lang": "en",
+    "categories": ["technology", "education"],
+    "icons": [
+        {
+            "src": "/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#006a4e",
+    "background_color": "#006a4e",
+    "display": "standalone"
+}
