@@ -35,7 +35,7 @@ class SetSecurityHeaders
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline'".$devServer,
             "style-src 'self' 'unsafe-inline'".$devServer,
-            "img-src 'self' data: https:",
+            "img-src 'self' data: blob: https:",
             "font-src 'self' data:",
             "connect-src 'self'".$devServer,
             "frame-ancestors 'none'",
