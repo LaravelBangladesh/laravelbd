@@ -84,7 +84,9 @@ COPY --chmod=0755 docker/php/entrypoint.sh /usr/local/bin/entrypoint
 
 RUN composer dump-autoload --optimize --no-dev \
     && php artisan package:discover --ansi \
-    && chown -R www-data:www-data storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && cp -a public /opt/public \
+    && chown -R www-data:www-data /opt/public
 
 USER www-data
 

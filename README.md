@@ -106,16 +106,71 @@ Laravel trusts these same ranges (`config/cloudflare-proxies.php`) so that
 `X-Forwarded-Proto` and the visitor's real IP are honoured from Cloudflare and
 ignored from anyone else. Refresh that list if Cloudflare publishes new ranges.
 
-### Deploy
+### Server layout
 
-```sh
-docker compose -f compose.prod.yml build
-docker compose -f compose.prod.yml up -d
-docker compose -f compose.prod.yml exec app php artisan migrate --force
+Images are built by CI and pulled from the registry, so the server holds no
+checkout of this repository. It needs only three things:
+
+```
+/opt/laravelbd/compose.prod.yml        # copied from this repo; holds no secrets
+/opt/laravelbd/.env                    # secrets, chmod 600, never written by CI
+/etc/ssl/cloudflare/origin.{pem,key}   # Cloudflare origin certificate
 ```
 
-Config, route, and view caches are rebuilt and `storage:link` is recreated by the
-container entrypoint on every start, so a deploy is just a rebuild and restart.
+Keep an encrypted copy of `.env` off the server (a password manager is fine). It
+is the only unversioned state in the deployment, so losing the disk means
+reconstructing every secret by hand.
+
+### Releasing
+
+Deploys happen on version tags. Merging to `main` runs the test suite and ships
+nothing.
+
+```sh
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+That builds the `app`, `ssr`, and `nginx` images, pushes them to
+`ghcr.io/laravelbangladesh/laravelbd-*:1.2.3`, then over SSH rewrites
+`APP_IMAGE_TAG` and `APP_VERSION` in the server's `.env` and runs:
+
+```sh
+docker compose -f compose.prod.yml pull
+docker compose -f compose.prod.yml up -d
+docker compose -f compose.prod.yml exec -T app php artisan migrate --force
+```
+
+Every other line of `.env` is left alone, so secrets edited on the server survive
+a deploy. Config, route, and view caches are rebuilt, `public/` is refreshed from
+the image, and `storage:link` is recreated by the container entrypoint on each
+start.
+
+To roll back, set `APP_IMAGE_TAG` to the previous version and re-run the pull and
+up commands above. Images are immutable, so a given tag always resolves to the
+same build.
+
+Changing a secret is a manual step: edit `/opt/laravelbd/.env` on the server and
+run `docker compose -f compose.prod.yml up -d` to restart with the new values.
+
+The release workflow needs these repository secrets: `DEPLOY_HOST`, `DEPLOY_USER`,
+`DEPLOY_SSH_KEY` (a private key whose public half is in the deploy user's
+`authorized_keys`), and `DEPLOY_PATH` (the directory holding `compose.prod.yml`
+and `.env`).
+
+### First deploy
+
+The server has no `.env` yet, so the first release needs it in place beforehand:
+
+```sh
+sudo mkdir -p /opt/laravelbd
+# copy compose.prod.yml from this repo, then create .env from docker/env.example
+sudo chmod 600 /opt/laravelbd/.env
+```
+
+Set `APP_KEY` (`php artisan key:generate --show` locally), the database
+credentials, `SESSION_SECURE_COOKIE=true`, `SESSION_DOMAIN`, and the SMTP
+values. Then push a tag.
 
 ## License
 
