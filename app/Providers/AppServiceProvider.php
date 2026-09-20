@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Infrastructure\Auth\UuidEloquentUserProvider;
 use App\Infrastructure\Images\CloudflareImageStorage;
-use App\Infrastructure\Images\LocalDiskImageStorage;
+use App\Infrastructure\Images\DiskImageStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,10 +23,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ImageStorage::class, function (): ImageStorage {
-            $local = new LocalDiskImageStorage((string) config('images.disk', 'public'));
+            $local = new DiskImageStorage((string) config('images.disk', 'public'));
 
             return match ((string) config('images.driver')) {
                 'local' => $local,
+                'r2' => new DiskImageStorage('r2'),
                 default => new CloudflareImageStorage($local),
             };
         });

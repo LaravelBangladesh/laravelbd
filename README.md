@@ -14,7 +14,7 @@ Community platform for the Laravel Bangladesh user group. Docker, Laravel 13, In
 - Inertia 3, React 19, TypeScript, Tailwind CSS 4, Catalyst UI
 - Auth: magic link, email login code, and passkeys (no passwords)
 - Locales: English and Bangla
-- Images: Cloudflare Images when configured, otherwise the local `public` disk
+- Images: Cloudflare R2, Cloudflare Images, or the local `public` disk, via `IMAGE_DRIVER`
 - Videos: YouTube URLs only
 
 ## Installation
@@ -57,7 +57,12 @@ docker compose exec app php artisan db:seed
 docker compose logs -f nginx app vite
 ```
 
-Leave `CLOUDFLARE_IMAGES_ACCOUNT_ID`, `CLOUDFLARE_IMAGES_API_TOKEN`, and `CLOUDFLARE_IMAGES_DELIVERY_URL` empty locally so uploads stay on disk.
+Leave `IMAGE_DRIVER=local` so uploads stay on disk during development.
+
+Production uses `IMAGE_DRIVER=r2`, a public Cloudflare R2 bucket served directly from its
+domain. Create the bucket, an API token scoped to it (R2 → Manage API Tokens, Object Read &
+Write), then expose it publicly — either the bucket's `r2.dev` URL or a custom domain — and
+set that as `R2_URL`. `R2_ENDPOINT` is `https://<account-id>.r2.cloudflarestorage.com`.
 
 ## Production
 

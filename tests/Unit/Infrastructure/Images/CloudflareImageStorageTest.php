@@ -1,7 +1,7 @@
 <?php
 
 use App\Infrastructure\Images\CloudflareImageStorage;
-use App\Infrastructure\Images\LocalDiskImageStorage;
+use App\Infrastructure\Images\DiskImageStorage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,7 +16,7 @@ function cloudflareConfigured(): void
 
 function cloudflareStorage(): CloudflareImageStorage
 {
-    return new CloudflareImageStorage(new LocalDiskImageStorage);
+    return new CloudflareImageStorage(new DiskImageStorage);
 }
 
 test('uploads to cloudflare and returns a prefixed id', function () {

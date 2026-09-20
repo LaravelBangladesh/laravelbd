@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-class LocalDiskImageStorage implements ImageStorage
+class DiskImageStorage implements ImageStorage
 {
     public function __construct(private readonly string $disk = 'public') {}
 

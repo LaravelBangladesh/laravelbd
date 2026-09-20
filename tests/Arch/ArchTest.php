@@ -3,7 +3,7 @@
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Infrastructure\Images\CloudflareImageStorage;
-use App\Infrastructure\Images\LocalDiskImageStorage;
+use App\Infrastructure\Images\DiskImageStorage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
@@ -142,6 +142,6 @@ arch('domain is framework-http free')
 arch('infrastructure implements domain contracts')
     ->expect([
         CloudflareImageStorage::class,
-        LocalDiskImageStorage::class,
+        DiskImageStorage::class,
     ])
     ->toImplement(ImageStorage::class);
