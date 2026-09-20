@@ -88,7 +88,6 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: VERSION
-          script_stop: true
           script: |
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
