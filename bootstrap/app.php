@@ -50,10 +50,13 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
-            if ($response->getStatusCode() === 404 && ! $request->expectsJson()) {
-                return Inertia::render('errors/404')
+            $status = $response->getStatusCode();
+            $pages = [403, 404, 419, 429, 500, 503];
+
+            if (in_array($status, $pages, true) && ! $request->expectsJson()) {
+                return Inertia::render("errors/{$status}")
                     ->toResponse($request)
-                    ->setStatusCode(404);
+                    ->setStatusCode($status);
             }
 
             return $response;
