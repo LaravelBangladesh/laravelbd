@@ -24,3 +24,13 @@ test('a content security policy is set blocking frame embedding and plugins', fu
         ->toContain("object-src 'none'")
         ->toContain("default-src 'self'");
 });
+
+test('the content security policy allows the cloudflare beacon script', function () {
+    $response = $this->get('/')->assertOk();
+
+    $csp = $response->headers->get('Content-Security-Policy');
+
+    expect($csp)
+        ->toContain("script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com")
+        ->toContain("connect-src 'self' https://static.cloudflareinsights.com");
+});
