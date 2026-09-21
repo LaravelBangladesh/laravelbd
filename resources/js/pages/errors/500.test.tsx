@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { renderPage } from '@/test/render';
 
@@ -37,5 +38,17 @@ describe('ServerError', () => {
         expect(
             screen.getByRole('button', { name: 'Try again' }),
         ).toBeInTheDocument();
+    });
+
+    it('reloads the page on retry', async () => {
+        const reload = vi.fn();
+        vi.stubGlobal('location', { ...window.location, reload });
+        const user = userEvent.setup();
+
+        renderPage(<Page />, { translations });
+        await user.click(screen.getByRole('button', { name: 'Try again' }));
+
+        expect(reload).toHaveBeenCalled();
+        vi.unstubAllGlobals();
     });
 });
