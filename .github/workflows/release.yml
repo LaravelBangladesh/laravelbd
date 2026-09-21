@@ -103,3 +103,21 @@ jobs:
             docker compose -f compose.prod.yml up -d
             docker compose -f compose.prod.yml exec -T app php artisan migrate --force
             docker image prune -f
+
+  release:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create GitHub release for ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          args=(--repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes --verify-tag)
+          case "$TAG" in *-*) args+=(--prerelease) ;; esac
+          gh release create "$TAG" "${args[@]}"
