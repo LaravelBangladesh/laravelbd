@@ -10,7 +10,41 @@ permissions:
   contents: read
 
 jobs:
-  ci:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      php: ${{ steps.filter.outputs.php }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Filter changed paths
+        id: filter
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: |
+            php:
+              - 'app/**'
+              - 'config/**'
+              - 'routes/**'
+              - 'database/**'
+              - 'tests/**'
+              - 'composer.*'
+              - 'phpstan.neon'
+              - '.github/workflows/tests.yml'
+            frontend:
+              - 'resources/js/**'
+              - 'package*.json'
+              - 'vite.config.*'
+              - 'tsconfig*'
+              - '.github/workflows/tests.yml'
+
+  php:
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -25,6 +59,36 @@ jobs:
           php-version: '8.5'
           tools: composer:v2
           coverage: pcov
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: |
+          cp docker/env.example .env
+          php artisan key:generate
+
+      - name: Run PHP checks
+        run: composer test
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: 1
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -43,7 +107,10 @@ jobs:
           php artisan key:generate
           php artisan wayfinder:generate --with-form
 
-      - name: Run CI Checks
-        run: composer ci:check
+      - name: Run frontend checks
+        run: |
+          npm run check
+          npm run types:check
+          npm run test
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
