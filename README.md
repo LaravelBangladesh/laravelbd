@@ -95,18 +95,38 @@ sudo install -m 644 /dev/null /etc/ssl/cloudflare/origin.pem
 ```
 
 The private key is secret and must never be committed. Origin certificates are
-trusted only by Cloudflare, so a direct request to the server's IP fails the TLS
-handshake rather than exposing the site.
+trusted only by Cloudflare, but that does not stop a client that ignores
+certificate trust: a scanner hitting the server's IP directly still completes
+the handshake. nginx therefore only answers for `laravelbd.com` and
+`www.laravelbd.com`; any other `Host`, including the bare IP, gets the connection
+closed (`return 444`).
 
-As defence in depth, restrict the origin to Cloudflare so the app is unreachable
-except through the edge:
+As defence in depth, restrict ports 80 and 443 to Cloudflare at the firewall so
+the origin is unreachable except through the edge. Docker publishes ports through
+its own iptables chain and skips ufw's `INPUT` rules, so `ufw allow from ...` has
+no effect on them. Filter in the `DOCKER-USER` chain instead:
 
 ```sh
-for ip in $(curl -s https://www.cloudflare.com/ips-v4); do sudo ufw allow from "$ip" to any port 443 proto tcp; done
-for ip in $(curl -s https://www.cloudflare.com/ips-v6); do sudo ufw allow from "$ip" to any port 443 proto tcp; done
 sudo ufw allow OpenSSH
 sudo ufw --force enable
+
+for v in "" 6; do
+    ipt="ip${v}tables"
+    sudo "$ipt" -N CLOUDFLARE 2>/dev/null || sudo "$ipt" -F CLOUDFLARE
+    for ip in $(curl -s "https://www.cloudflare.com/ips-v${v:-4}"); do
+        sudo "$ipt" -A CLOUDFLARE -s "$ip" -j RETURN
+    done
+    sudo "$ipt" -A CLOUDFLARE -j DROP
+    sudo "$ipt" -C DOCKER-USER -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE 2>/dev/null \
+        || sudo "$ipt" -I DOCKER-USER -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE
+done
+
+sudo apt-get install -y iptables-persistent
+sudo netfilter-persistent save
 ```
+
+Docker leaves `DOCKER-USER` alone across restarts, and `netfilter-persistent`
+restores the rules on boot. Re-run the loop when Cloudflare publishes new ranges.
 
 Laravel trusts these same ranges (`config/cloudflare-proxies.php`) so that
 `X-Forwarded-Proto` and the visitor's real IP are honoured from Cloudflare and
