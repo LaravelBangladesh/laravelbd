@@ -1,6 +1,7 @@
 # Laravel Bangladesh
 
 [![Tests](https://github.com/LaravelBangladesh/laravelbd/actions/workflows/tests.yml/badge.svg)](https://github.com/LaravelBangladesh/laravelbd/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/LaravelBangladesh/laravelbd?include_prereleases&sort=semver)](https://github.com/LaravelBangladesh/laravelbd/releases)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com/)
@@ -145,6 +146,9 @@ docker compose -f compose.prod.yml pull
 docker compose -f compose.prod.yml up -d
 docker compose -f compose.prod.yml exec -T app php artisan migrate --force
 ```
+
+Once the deploy succeeds, a GitHub release is created for the tag with generated
+notes.
 
 Every other line of `.env` is left alone, so secrets edited on the server survive
 a deploy. Config, route, and view caches are rebuilt, `public/` is refreshed from
