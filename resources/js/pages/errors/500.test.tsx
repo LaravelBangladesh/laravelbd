@@ -42,7 +42,7 @@ describe('ServerError', () => {
 
     it('reloads the page on retry', async () => {
         const reload = vi.fn();
-        vi.stubGlobal('location', { ...window.location, reload });
+        vi.stubGlobal('location', { reload });
         const user = userEvent.setup();
 
         renderPage(<Page />, { translations });
