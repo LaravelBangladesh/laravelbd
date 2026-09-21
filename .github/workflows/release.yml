@@ -83,14 +83,21 @@ jobs:
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           VERSION: ${{ needs.build.outputs.version }}
+          COMPOSE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/compose.prod.yml
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: VERSION
+          envs: VERSION,COMPOSE_URL
           script: |
             set -eu
             cd "${{ secrets.DEPLOY_PATH }}"
+
+            # compose.prod.yml holds no secrets, so the server copy tracks the
+            # released tag. Download then move so a failed fetch leaves the old
+            # file in place.
+            curl -fsSL "$COMPOSE_URL" -o compose.prod.yml.new
+            mv compose.prod.yml.new compose.prod.yml
 
             # Secrets stay on the server and are never written by CI. Only the
             # release version is rewritten, so an edited .env survives a deploy.

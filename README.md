@@ -138,7 +138,7 @@ Images are built by CI and pulled from the registry, so the server holds no
 checkout of this repository. It needs only three things:
 
 ```
-/opt/laravelbd/compose.prod.yml        # copied from this repo; holds no secrets
+/opt/laravelbd/compose.prod.yml        # refreshed from the tag on each release; holds no secrets
 /opt/laravelbd/.env                    # secrets, chmod 600, never written by CI
 /etc/ssl/cloudflare/origin.{pem,key}   # Cloudflare origin certificate
 ```
@@ -158,8 +158,9 @@ git push origin v1.2.3
 ```
 
 That builds the `app`, `ssr`, and `nginx` images, pushes them to
-`ghcr.io/laravelbangladesh/laravelbd-*:1.2.3`, then over SSH rewrites
-`APP_IMAGE_TAG` and `APP_VERSION` in the server's `.env` and runs:
+`ghcr.io/laravelbangladesh/laravelbd-*:1.2.3`, then over SSH replaces the
+server's `compose.prod.yml` with the one from the tag, rewrites `APP_IMAGE_TAG`
+and `APP_VERSION` in `.env`, and runs:
 
 ```sh
 docker compose -f compose.prod.yml pull
