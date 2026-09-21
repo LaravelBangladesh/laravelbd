@@ -204,8 +204,8 @@ export default function DirectoryIndex({
                                                     className={
                                                         listing.kind ===
                                                         'company'
-                                                            ? 'h-11 w-auto max-w-[66%] object-contain'
-                                                            : 'size-16'
+                                                            ? 'h-16 w-auto max-w-[75%] object-contain'
+                                                            : 'size-24'
                                                     }
                                                 />
                                             ) : (

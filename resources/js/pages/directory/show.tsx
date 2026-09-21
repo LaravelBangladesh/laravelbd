@@ -73,10 +73,10 @@ export default function DirectoryShow({
                     <ProfileAvatar
                         src={listing.photo_url}
                         alt=""
-                        className="mb-8 size-28"
+                        className="mb-8 size-40"
                     />
                 ) : (
-                    <span className="bg-brand-green/10 text-brand-green mb-8 flex size-28 items-center justify-center text-2xl font-medium">
+                    <span className="bg-brand-green/10 text-brand-green mb-8 flex size-40 items-center justify-center text-3xl font-medium">
                         {initials(listing.name)}
                     </span>
                 )}
