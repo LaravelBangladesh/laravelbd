@@ -16,6 +16,7 @@ import {
 import { type FieldOption } from '@/components/field-select';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useTrans } from '@/lib/i18n';
+import { Search } from 'lucide-react';
 
 export type DirectoryCardData = {
     id: string;
@@ -126,19 +127,15 @@ export default function DirectoryIndex({
                     </p>
                     <label className="relative flex min-w-0 flex-1 items-center">
                         <span className="sr-only">{t('directory.search')}</span>
-                        <svg
-                            viewBox="0 0 16 16"
-                            aria-hidden
-                            className="fill-ink-muted pointer-events-none absolute left-0 size-4"
-                        >
-                            <path d="M11.5 10.4 15 13.9 13.9 15l-3.5-3.5a5.5 5.5 0 1 1 1.1-1.1ZM6.5 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" />
-                        </svg>
+                        <div className="pl-4">
+                            <Search className="text-ink-muted size-4" />
+                        </div>
                         <input
                             type="search"
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder={t('directory.search')}
-                            className="text-ink placeholder:text-ink-muted min-h-[64px] w-full bg-transparent pr-4 pl-8 text-[15px] outline-none sm:min-h-[72px]"
+                            className="text-ink placeholder:text-ink-muted min-h-[64px] w-full bg-transparent pr-4 pl-4 text-[15px] outline-none sm:min-h-[72px]"
                         />
                     </label>
                     <button
