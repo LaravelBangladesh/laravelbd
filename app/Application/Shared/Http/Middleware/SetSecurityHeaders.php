@@ -33,11 +33,11 @@ class SetSecurityHeaders
 
         $directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline'".$devServer,
+            "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com".$devServer,
             "style-src 'self' 'unsafe-inline'".$devServer,
             "img-src 'self' data: blob: https:",
             "font-src 'self' data:",
-            "connect-src 'self'".$devServer,
+            "connect-src 'self' https://static.cloudflareinsights.com".$devServer,
             "frame-ancestors 'none'",
             "object-src 'none'",
             "base-uri 'self'",
