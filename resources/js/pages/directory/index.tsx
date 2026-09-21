@@ -128,7 +128,7 @@ export default function DirectoryIndex({
                     <label className="relative flex min-w-0 flex-1 items-center">
                         <span className="sr-only">{t('directory.search')}</span>
                         <div className="pl-4">
-                            <Search className="size-4 text-ink-muted" />
+                            <Search className="text-ink-muted size-4" />
                         </div>
                         <input
                             type="search"
