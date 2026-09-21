@@ -101,6 +101,27 @@ the handshake. nginx therefore only answers for `laravelbd.com` and
 `www.laravelbd.com`; any other `Host`, including the bare IP, gets the connection
 closed (`return 444`).
 
+### Authenticated Origin Pulls
+
+nginx also requires the client certificate Cloudflare presents when
+**Authenticated Origin Pulls** is on for the zone, verified against Cloudflare's
+Origin Pull CA baked into the image (`docker/nginx/cloudflare-origin-pull-ca.pem`).
+A request without a certificate gets 403 and one with a certificate that fails
+verification gets 400, whatever its `Host` or source IP. Only the container's
+own healthcheck on loopback is exempt.
+
+Rollout order matters. Turn the feature on in Cloudflare **before** deploying an
+nginx image that enforces it (Cloudflare dashboard → SSL/TLS → Origin Server →
+Authenticated Origin Pulls → On). Cloudflare then starts presenting the
+certificate, which an older origin simply ignores. Deploying the enforcing image
+first would 403 every visitor until the toggle is flipped.
+
+The CA certificate expires in November 2029. Refresh it from
+<https://developers.cloudflare.com/ssl/static/authenticated_origin_pull_ca.pem>
+before then.
+
+### Firewall
+
 As defence in depth, restrict ports 80 and 443 to Cloudflare at the firewall so
 the origin is unreachable except through the edge. Docker publishes ports through
 its own iptables chain and skips ufw's `INPUT` rules, so `ufw allow from ...` has
