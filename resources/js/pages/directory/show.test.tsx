@@ -50,6 +50,7 @@ describe('DirectoryShow', () => {
             'src',
             '/images/ada.jpg',
         );
+        expect(container.querySelector('img')).toHaveClass('size-40');
         expect(screen.getByRole('link', { name: 'Website' })).toHaveAttribute(
             'href',
             'https://example.test',
@@ -76,7 +77,7 @@ describe('DirectoryShow', () => {
             { translations },
         );
 
-        expect(screen.getByText('AL')).toBeInTheDocument();
+        expect(screen.getByText('AL')).toHaveClass('size-40');
         expect(container.querySelector('img')).toBeNull();
         expect(
             screen.queryByText('Writes programs for engines.'),

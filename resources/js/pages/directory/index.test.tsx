@@ -133,8 +133,8 @@ describe('DirectoryIndex', () => {
         );
 
         const images = container.querySelectorAll('img');
-        expect(images[0]).toHaveClass('size-16');
-        expect(images[1]).toHaveClass('object-contain');
+        expect(images[0]).toHaveClass('size-24');
+        expect(images[1]).toHaveClass('h-16', 'object-contain');
     });
 
     it('copes with a name that starts with whitespace', () => {
