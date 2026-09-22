@@ -97,13 +97,21 @@ export default function DirectoryShow({
                 {listing.links.length > 0 && (
                     <div className={`${actionRowClass} mt-8`}>
                         {listing.links.map((link, index) => (
-                            <Button
+                            <a
                                 key={link.key}
                                 href={link.url}
-                                variant={index === 0 ? 'primary' : 'outline'}
+                                target="_blank"
+                                rel="noopener noreferrer"
                             >
-                                {t(`directory.${link.key}`)}
-                            </Button>
+                                <Button
+                                    key={link.key}
+                                    variant={
+                                        index === 0 ? 'primary' : 'outline'
+                                    }
+                                >
+                                    {t(`directory.${link.key}`)}
+                                </Button>
+                            </a>
                         ))}
                     </div>
                 )}
