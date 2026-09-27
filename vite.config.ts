@@ -88,7 +88,7 @@ export default defineConfig({
         include: ['resources/js/**/*.test.{ts,tsx}'],
         coverage: {
             provider: 'v8',
-            reporter: ['text', 'json-summary'],
+            reporter: ['text', 'json-summary', 'lcov'],
             reportsDirectory: 'coverage/js',
             include: ['resources/js/**/*.{ts,tsx}'],
             exclude: [

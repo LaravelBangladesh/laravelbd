@@ -1,0 +1,5 @@
+# Each test job only runs when its own paths change, so keep the last
+# uploaded coverage for a flag instead of treating a skipped suite as 0%.
+flag_management:
+    default_rules:
+        carryforward: true
