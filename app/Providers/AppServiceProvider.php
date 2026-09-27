@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Domain\Shared\Contracts\ImageStorage;
+use App\Domain\Shared\Contracts\UrlShortener;
 use App\Infrastructure\Auth\UuidEloquentUserProvider;
 use App\Infrastructure\Images\CloudflareImageStorage;
 use App\Infrastructure\Images\DiskImageStorage;
+use App\Infrastructure\ShortUrls\MollaUrlShortener;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
                 default => new CloudflareImageStorage($local),
             };
         });
+
+        $this->app->bind(UrlShortener::class, MollaUrlShortener::class);
     }
 
     /**

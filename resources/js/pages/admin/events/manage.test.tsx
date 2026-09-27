@@ -19,6 +19,7 @@ const AdminEventsManage = (await import('@/pages/admin/events/manage')).default;
 
 const translations = {
     'admin.events_manage': 'Manage event',
+    'events.short_url': 'Short link',
     'admin.events_sessions': 'Sessions',
     'admin.events_attendees': 'Attendees',
     'admin.events_media': 'Media',
@@ -88,6 +89,7 @@ const baseEvent: ManagedEvent = {
     id: 'e1',
     slug: 'laracon-dhaka',
     title_en: 'Laracon Dhaka',
+    short_url: null,
     sessions: [
         {
             id: 'sess-1',
@@ -162,6 +164,19 @@ describe('AdminEventsManage header', () => {
         expect(
             screen.getByRole('link', { name: 'Edit details' }),
         ).toHaveAttribute('href', '/admin/events/e1/edit');
+    });
+
+    it('shows the short link once the event has one', () => {
+        renderManage();
+
+        expect(screen.queryByText('Short link')).not.toBeInTheDocument();
+
+        renderManage({ ...baseEvent, short_url: 'https://mol.la/abc1234' });
+
+        expect(screen.getByText('Short link')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'mol.la/abc1234' }),
+        ).toHaveAttribute('href', 'https://mol.la/abc1234');
     });
 
     it('shows a count on each tab', () => {

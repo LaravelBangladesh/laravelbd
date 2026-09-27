@@ -2,14 +2,18 @@
 
 namespace Tests;
 
+use App\Domain\Shared\Contracts\UrlShortener;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Laravel\Fortify\Features;
+use Tests\Fakes\FakeUrlShortener;
 
 abstract class TestCase extends BaseTestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->app->instance(UrlShortener::class, new FakeUrlShortener);
 
         $this->withoutVite();
         $this->withHeaders([

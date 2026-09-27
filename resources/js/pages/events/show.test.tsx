@@ -17,6 +17,9 @@ const translations = {
     'events.map': 'Open the map',
     'events.join_online': 'Join online',
     'events.capacity': 'Capacity',
+    'events.short_url': 'Short link',
+    'events.copy': 'Copy',
+    'events.copied': 'Copied',
     'events.registered_count': ':count registered',
     'events.capacity_of': 'of :capacity',
     'events.speakers': 'Speakers',
@@ -125,6 +128,7 @@ const event = {
     venue_address: 'Shahbagh, Dhaka',
     venue_map_url: 'https://maps.test/dhaka',
     online_url: 'https://meet.test/laracon',
+    short_url: 'https://mol.la/abc1234',
     cover_url: '/images/cover.jpg',
     capacity: 200,
     registered_count: 120,
@@ -167,6 +171,7 @@ const bareEvent = {
     venue_address: null,
     venue_map_url: null,
     online_url: null,
+    short_url: null,
     cover_url: null,
     capacity: null,
     speakers: [],
@@ -196,6 +201,9 @@ describe('EventShow', () => {
         expect(
             screen.getByRole('link', { name: 'Join online' }),
         ).toHaveAttribute('href', 'https://meet.test/laracon');
+        expect(
+            screen.getByRole('link', { name: 'mol.la/abc1234' }),
+        ).toHaveAttribute('href', 'https://mol.la/abc1234');
         expect(screen.getByText('120 registered of 200')).toBeInTheDocument();
         expect(screen.getByText('A day of Laravel talks.')).toBeInTheDocument();
         expect(screen.getAllByText('Ada Lovelace')).toHaveLength(2);
@@ -227,6 +235,7 @@ describe('EventShow', () => {
             screen.queryByText('A day of Laravel talks.'),
         ).not.toBeInTheDocument();
         expect(screen.queryByText('Speakers')).not.toBeInTheDocument();
+        expect(screen.queryByText('Short link')).not.toBeInTheDocument();
         expect(screen.queryByText('Schedule')).not.toBeInTheDocument();
         expect(screen.queryByText('Photos')).not.toBeInTheDocument();
         expect(screen.queryByText('Videos')).not.toBeInTheDocument();
