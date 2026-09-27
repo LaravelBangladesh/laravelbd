@@ -72,8 +72,14 @@ return [
             'endpoint' => env('R2_ENDPOINT'),
             'use_path_style_endpoint' => true,
             'visibility' => 'public',
+            // Uploads run inside the web request. Without these the SDK waits
+            // indefinitely on an unreachable endpoint and nginx answers 504.
+            'http' => [
+                'connect_timeout' => 5,
+                'timeout' => 30,
+            ],
             'throw' => false,
-            'report' => false,
+            'report' => true,
         ],
 
     ],

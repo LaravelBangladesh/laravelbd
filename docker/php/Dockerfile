@@ -72,6 +72,7 @@ RUN npm run build:ssr
 FROM base AS production
 
 COPY docker/php/php.prod.ini /usr/local/etc/php/conf.d/zz-app.ini
+COPY docker/php/zz-pool.conf /usr/local/etc/php-fpm.d/zz-pool.conf
 
 COPY --chown=www-data:www-data composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
