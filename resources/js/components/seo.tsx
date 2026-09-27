@@ -69,16 +69,22 @@ export function Seo({
             />
             <meta property="og:url" content={seo.url} head-key="og:url" />
             <meta property="og:image" content={ogImage} head-key="og:image" />
-            <meta
-                property="og:image:width"
-                content="1200"
-                head-key="og:image:width"
-            />
-            <meta
-                property="og:image:height"
-                content="630"
-                head-key="og:image:height"
-            />
+            {/* Only the default image is known to be 1200x630; uploaded covers
+                come in any size, so crawlers measure those themselves. */}
+            {ogImage === seo.default_image && (
+                <>
+                    <meta
+                        property="og:image:width"
+                        content="1200"
+                        head-key="og:image:width"
+                    />
+                    <meta
+                        property="og:image:height"
+                        content="630"
+                        head-key="og:image:height"
+                    />
+                </>
+            )}
             <meta
                 property="og:site_name"
                 content={seo.site_name}

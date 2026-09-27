@@ -107,6 +107,8 @@ describe('Seo', () => {
         expect(meta(head, 'meta[name="twitter:image"]')).toBe(
             'https://laravelbd.test/covers/laracon.png',
         );
+        expect(meta(head, 'meta[property="og:image:width"]')).toBeNull();
+        expect(meta(head, 'meta[property="og:image:height"]')).toBeNull();
     });
 
     it('treats a null image as absent', () => {
