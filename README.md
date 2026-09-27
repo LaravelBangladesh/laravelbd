@@ -125,11 +125,16 @@ before then.
 As defence in depth, restrict ports 80 and 443 to Cloudflare at the firewall so
 the origin is unreachable except through the edge. Docker publishes ports through
 its own iptables chain and skips ufw's `INPUT` rules, so `ufw allow from ...` has
-no effect on them. Filter in the `DOCKER-USER` chain instead:
+no effect on them. Filter in the `DOCKER-USER` chain instead, and only for
+traffic arriving on the public interface: `DOCKER-USER` also sees the
+containers' own outbound connections, and without `-i` their HTTPS calls (R2,
+Cloudflare Images, mail APIs) would be dropped for not coming from Cloudflare.
 
 ```sh
 sudo ufw allow OpenSSH
 sudo ufw --force enable
+
+ext_if=$(ip route show default | awk '{print $5; exit}')
 
 for v in "" 6; do
     ipt="ip${v}tables"
@@ -138,8 +143,8 @@ for v in "" 6; do
         sudo "$ipt" -A CLOUDFLARE -s "$ip" -j RETURN
     done
     sudo "$ipt" -A CLOUDFLARE -j DROP
-    sudo "$ipt" -C DOCKER-USER -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE 2>/dev/null \
-        || sudo "$ipt" -I DOCKER-USER -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE
+    sudo "$ipt" -C DOCKER-USER -i "$ext_if" -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE 2>/dev/null \
+        || sudo "$ipt" -I DOCKER-USER -i "$ext_if" -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE
 done
 
 sudo apt-get install -y iptables-persistent
@@ -148,6 +153,9 @@ sudo netfilter-persistent save
 
 Docker leaves `DOCKER-USER` alone across restarts, and `netfilter-persistent`
 restores the rules on boot. Re-run the loop when Cloudflare publishes new ranges.
+On a server set up before the rule was scoped to `$ext_if`, delete the old rule
+first (`sudo iptables -D DOCKER-USER -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j CLOUDFLARE`,
+and the same with `ip6tables`), or it keeps dropping outbound traffic.
 
 Laravel trusts these same ranges (`config/cloudflare-proxies.php`) so that
 `X-Forwarded-Proto` and the visitor's real IP are honoured from Cloudflare and
