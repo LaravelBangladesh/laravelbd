@@ -11,6 +11,7 @@ const { Seo } = await import('@/components/seo');
 
 const seo = {
     url: 'https://laravelbd.test/events/laracon',
+    markdown_url: 'https://laravelbd.test/events/laracon.md',
     default_image: 'https://laravelbd.test/images/og-default.webp',
     site_name: 'Laravel Bangladesh',
 };
@@ -106,6 +107,8 @@ describe('Seo', () => {
         expect(meta(head, 'meta[name="twitter:image"]')).toBe(
             'https://laravelbd.test/covers/laracon.png',
         );
+        expect(meta(head, 'meta[property="og:image:width"]')).toBeNull();
+        expect(meta(head, 'meta[property="og:image:height"]')).toBeNull();
     });
 
     it('treats a null image as absent', () => {
@@ -187,6 +190,18 @@ describe('Seo', () => {
         );
 
         expect(meta(head, 'meta[name="robots"]')).toBe('noindex, nofollow');
+        expect(head.querySelector('link[type="text/markdown"]')).toBeNull();
+    });
+
+    it('points agents at the markdown version of the page', () => {
+        const { head } = renderSeo(
+            <Seo title="Laracon" description="Talks." />,
+        );
+
+        const link = head.querySelector('link[type="text/markdown"]');
+
+        expect(link?.getAttribute('rel')).toBe('alternate');
+        expect(link?.getAttribute('href')).toBe(seo.markdown_url);
     });
 
     it('renders no structured data when none is given', () => {

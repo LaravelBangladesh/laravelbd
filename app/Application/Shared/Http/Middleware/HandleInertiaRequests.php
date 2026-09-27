@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             'translations' => $this->translations(),
             'seo' => [
                 'url' => $request->url(),
+                'markdown_url' => $request->path() === '/' ? url('index.md') : $request->url().'.md',
                 'default_image' => asset('images/og-default.webp'),
                 'site_name' => config('app.name'),
             ],
