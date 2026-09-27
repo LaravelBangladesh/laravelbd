@@ -29,6 +29,8 @@ const translations = {
     'footer.since': 'Since 2016',
     'footer.facebook': 'Join our Facebook group',
     'footer.trademark': 'Laravel is a trademark of Laravel Holdings Inc.',
+    'nav.terms': 'Terms',
+    'nav.privacy': 'Privacy',
 };
 
 function renderLayout(props = {}, url = '/') {
@@ -156,6 +158,19 @@ describe('PublicLayout', () => {
             screen.getByText('The Laravel community of Bangladesh.'),
         ).toBeInTheDocument();
         expect(screen.getByText('(c) Laravel Bangladesh')).toBeInTheDocument();
+    });
+
+    it('links to the terms and privacy pages from the footer', () => {
+        renderLayout();
+
+        expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute(
+            'href',
+            '/terms',
+        );
+        expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute(
+            'href',
+            '/privacy',
+        );
     });
 
     it('links to the community facebook group', () => {

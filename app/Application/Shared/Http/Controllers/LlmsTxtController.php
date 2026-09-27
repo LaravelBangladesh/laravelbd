@@ -21,6 +21,8 @@ class LlmsTxtController extends Controller
             '- ['.__('nav.events').']('.route('events.index').'): '.__('meta.events'),
             '- ['.__('nav.directory').']('.route('directory.index').'): '.__('meta.directory'),
             '- ['.__('nav.resources').']('.route('resources.index').'): '.__('meta.resources'),
+            '- ['.__('nav.terms').']('.route('terms').'): '.__('meta.terms'),
+            '- ['.__('nav.privacy').']('.route('privacy').'): '.__('meta.privacy'),
         ];
 
         return response(implode("\n", $lines), 200, ['Content-Type' => 'text/plain']);

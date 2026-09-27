@@ -33,6 +33,8 @@ test('the sitemap lists public routes and published entities', function () {
         ->toContain(route('events.index'))
         ->toContain(route('resources.index'))
         ->toContain(route('directory.index'))
+        ->toContain(route('terms'))
+        ->toContain(route('privacy'))
         ->toContain(route('events.show', $event))
         ->toContain(route('resources.show', $resource))
         ->toContain(route('directory.show', $listing));
