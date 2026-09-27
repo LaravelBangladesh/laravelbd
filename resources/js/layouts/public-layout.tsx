@@ -32,6 +32,11 @@ const mainNav = [
     },
 ] as const;
 
+const legalNav = [
+    { href: '/terms', key: 'nav.terms' },
+    { href: '/privacy', key: 'nav.privacy' },
+] as const;
+
 export default function PublicLayout({
     children,
 }: {
@@ -177,6 +182,17 @@ export default function PublicLayout({
                         <div className="space-y-1">
                             <p>{t('footer.copyright')}</p>
                             <p className="text-xs">{t('footer.credit')}</p>
+                            <p className="flex gap-4 pt-1 text-xs">
+                                {legalNav.map((item) => (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="transition-colors hover:text-white"
+                                    >
+                                        {t(item.key)}
+                                    </Link>
+                                ))}
+                            </p>
                         </div>
                         <p className="flex items-center gap-3">
                             <span>{t('footer.since')}</span>

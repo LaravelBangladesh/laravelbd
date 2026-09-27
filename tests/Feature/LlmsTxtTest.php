@@ -11,5 +11,7 @@ test('llms.txt returns a plain-text summary with key section links', function ()
         ->toContain(route('about'))
         ->toContain(route('events.index'))
         ->toContain(route('directory.index'))
-        ->toContain(route('resources.index'));
+        ->toContain(route('resources.index'))
+        ->toContain(route('terms'))
+        ->toContain(route('privacy'));
 });

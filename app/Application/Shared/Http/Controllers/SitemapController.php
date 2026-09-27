@@ -17,6 +17,8 @@ class SitemapController extends Controller
             $this->url(route('resources.index'), now(), 'daily', '0.8'),
             $this->url(route('directory.index'), now(), 'daily', '0.8'),
             $this->url(route('events.index'), now(), 'daily', '0.9'),
+            $this->url(route('terms'), now(), 'yearly', '0.3'),
+            $this->url(route('privacy'), now(), 'yearly', '0.3'),
         ];
 
         foreach (Resource::query()->published()->get() as $resource) {
