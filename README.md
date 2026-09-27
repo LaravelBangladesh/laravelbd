@@ -1,6 +1,7 @@
 # Laravel Bangladesh
 
 [![Tests](https://github.com/LaravelBangladesh/laravelbd/actions/workflows/tests.yml/badge.svg)](https://github.com/LaravelBangladesh/laravelbd/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/LaravelBangladesh/laravelbd/graph/badge.svg)](https://codecov.io/gh/LaravelBangladesh/laravelbd)
 [![Release](https://img.shields.io/github/v/release/LaravelBangladesh/laravelbd?include_prereleases&sort=semver)](https://github.com/LaravelBangladesh/laravelbd/releases)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![PHP 8.5](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://www.php.net/)
