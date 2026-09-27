@@ -6,6 +6,7 @@ use App\Application\Directory\Http\Controllers\Account\DirectoryProfileControlle
 use App\Application\Directory\Http\Controllers\DirectoryController;
 use App\Application\Events\Http\Controllers\EventController;
 use App\Application\Events\Http\Controllers\EventRsvpController;
+use App\Application\Events\Http\Controllers\EventShortLinkController;
 use App\Application\Identity\Http\Controllers\Account\AccountController;
 use App\Application\Identity\Http\Controllers\Account\CancelEmailChangeController;
 use App\Application\Identity\Http\Controllers\Account\EmailChangeMagicLinkController;
@@ -33,6 +34,7 @@ Route::get('directory', [DirectoryController::class, 'index'])->name('directory.
 Route::get('directory/{listing:slug}', [DirectoryController::class, 'show'])->name('directory.show');
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 Route::get('events/{event:slug}', [EventController::class, 'show'])->name('events.show');
+Route::get('e/{event}', EventShortLinkController::class)->whereUuid('event')->name('events.short');
 Route::get('events/{event:slug}/cfp', [EventProposalController::class, 'create'])
     ->middleware('auth')
     ->name('events.cfp.create');

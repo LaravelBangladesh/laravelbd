@@ -10,6 +10,7 @@ import {
 } from '@/components/admin-page-header';
 import { Button, Eyebrow, pageHeaderClass } from '@/components/design';
 import { StatusChip } from '@/components/status-chip';
+import { ShortUrl } from '@/components/short-url';
 import {
     Dialog,
     DialogActions,
@@ -67,6 +68,7 @@ type ManagedEvent = {
     id: string;
     slug: string;
     title_en: string;
+    short_url: string | null;
     sessions: Session[];
     questions: Question[];
     attendees: {
@@ -561,6 +563,15 @@ export default function AdminEventsManage({
                     </>
                 }
             />
+
+            {event.short_url && (
+                <p className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+                    <span className="text-ink-muted">
+                        {t('events.short_url')}
+                    </span>
+                    <ShortUrl url={event.short_url} />
+                </p>
+            )}
 
             <TabGroup
                 selectedIndex={TABS.indexOf(tab)}

@@ -2,6 +2,7 @@ import { Seo } from '@/components/seo';
 import type { JsonLd } from '@/types/seo';
 import { Form, Link, usePage } from '@inertiajs/react';
 import { ProfileAvatar } from '@/components/profile-avatar';
+import { ShortUrl } from '@/components/short-url';
 import {
     actionRowClass,
     Button,
@@ -51,6 +52,7 @@ type EventDetail = {
     venue_address: string | null;
     venue_map_url: string | null;
     online_url: string | null;
+    short_url: string | null;
     cover_url: string | null;
     capacity: number | null;
     registered_count: number;
@@ -321,6 +323,11 @@ export default function EventShow({ event }: { event: EventDetail }) {
                             >
                                 {t('events.join_online')}
                             </a>
+                        </MetaRow>
+                    )}
+                    {event.short_url && (
+                        <MetaRow label={t('events.short_url')}>
+                            <ShortUrl url={event.short_url} />
                         </MetaRow>
                     )}
                     <MetaRow label={t('events.capacity')}>

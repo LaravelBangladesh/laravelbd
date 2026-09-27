@@ -57,6 +57,7 @@ class EventPresenter
 
         return [
             ...self::card($event),
+            'short_url' => $event->short_url,
             'meta_description' => MetaDescription::make(
                 $event->localized('excerpt'),
                 $event->localized('description'),
@@ -171,6 +172,7 @@ class EventPresenter
             'cfp_enabled' => $event->cfp_enabled,
             'cfp_opens_at' => DhakaTime::format($event->cfp_opens_at),
             'cfp_closes_at' => DhakaTime::format($event->cfp_closes_at),
+            'short_url' => $event->short_url,
             'cover_url' => self::imageUrl($event->cover_path),
         ];
     }

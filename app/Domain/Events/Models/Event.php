@@ -43,6 +43,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $cfp_opens_at
  * @property Carbon|null $cfp_closes_at
  * @property string|null $cover_path
+ * @property string|null $short_url
  * @property Carbon|null $published_at
  * @property string|null $created_by
  * @property Carbon|null $created_at

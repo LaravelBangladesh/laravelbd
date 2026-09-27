@@ -3,6 +3,7 @@
 namespace App\Domain\Events\Actions;
 
 use App\Domain\Events\Data\EventData;
+use App\Domain\Events\Jobs\GenerateEventShortUrl;
 use App\Domain\Events\Models\Event;
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Domain\Shared\Data\UploadedImage;
@@ -23,6 +24,10 @@ final class UpdateEvent
         }
 
         $event->save();
+
+        if ($event->isPublished() && $event->short_url === null) {
+            GenerateEventShortUrl::dispatch($event);
+        }
 
         return $event;
     }
