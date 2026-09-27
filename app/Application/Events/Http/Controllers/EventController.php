@@ -2,6 +2,7 @@
 
 namespace App\Application\Events\Http\Controllers;
 
+use App\Application\Events\ViewModels\EventMarkdown;
 use App\Application\Events\ViewModels\EventPresenter;
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Application\Shared\ViewModels\Breadcrumbs;
@@ -37,7 +38,7 @@ class EventController extends Controller
             ->all();
 
         if ($request->wantsMarkdown()) {
-            $link = fn (array $event) => "- [{$event['title']}](".route('events.show', $event['slug']).'): '.$event['excerpt'];
+            $link = fn (array $event) => "- [{$event['title']}](".route('events.show', $event['slug'])."), {$event['starts_at']}: {$event['excerpt']}";
 
             return MarkdownDocument::respond(__('events.title'), [
                 '## Upcoming',
@@ -78,11 +79,7 @@ class EventController extends Controller
         $detail = EventPresenter::detail($event, $request->user());
 
         if ($request->wantsMarkdown()) {
-            return MarkdownDocument::respond($detail['title'], array_filter([
-                "{$detail['date']}, {$detail['time_range']}",
-                $detail['venue_name'],
-                $detail['description'],
-            ]));
+            return MarkdownDocument::respond($detail['title'], EventMarkdown::sections($detail));
         }
 
         return Inertia::render('events/show', [

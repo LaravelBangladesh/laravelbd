@@ -47,6 +47,14 @@ export function Seo({
                 head-key="description"
             />
             <link rel="canonical" href={seo.url} head-key="canonical" />
+            {!noindex && (
+                <link
+                    rel="alternate"
+                    type="text/markdown"
+                    href={seo.markdown_url}
+                    head-key="markdown"
+                />
+            )}
 
             <meta
                 property="og:type"

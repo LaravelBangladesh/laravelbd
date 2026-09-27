@@ -22,7 +22,8 @@ use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
-Route::get('llms.txt', LlmsTxtController::class)->name('llms.txt');
+Route::get('llms.txt', [LlmsTxtController::class, 'index'])->name('llms.txt');
+Route::get('llms-full.txt', [LlmsTxtController::class, 'full'])->name('llms-full.txt');
 Route::get('about', AboutController::class)->name('about');
 Route::get('terms', TermsController::class)->name('terms');
 Route::get('privacy', PrivacyController::class)->name('privacy');

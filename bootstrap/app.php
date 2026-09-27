@@ -4,6 +4,7 @@ use App\Application\Shared\Http\Middleware\EnsureAdmin;
 use App\Application\Shared\Http\Middleware\EnsureProfile;
 use App\Application\Shared\Http\Middleware\EnsureStaff;
 use App\Application\Shared\Http\Middleware\HandleInertiaRequests;
+use App\Application\Shared\Http\Middleware\ServeMarkdownVariant;
 use App\Application\Shared\Http\Middleware\SetLocale;
 use App\Application\Shared\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -21,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->prepend(ServeMarkdownVariant::class);
+
         $middleware->encryptCookies(except: ['sidebar_state']);
 
         $middleware->trustProxies(
