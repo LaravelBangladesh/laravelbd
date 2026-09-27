@@ -50,6 +50,7 @@ export function sharedProps(overrides: Record<string, unknown> = {}) {
         translations: {},
         seo: {
             url: 'https://laravelbd.test/',
+            markdown_url: 'https://laravelbd.test/index.md',
             default_image: 'https://laravelbd.test/images/og-default.webp',
             site_name: 'Laravel Bangladesh',
         },

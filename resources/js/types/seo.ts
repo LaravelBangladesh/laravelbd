@@ -1,5 +1,6 @@
 export type SharedSeo = {
     url: string;
+    markdown_url: string;
     default_image: string;
     site_name: string;
 };

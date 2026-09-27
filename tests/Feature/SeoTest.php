@@ -133,3 +133,12 @@ test('a resource page carries its description and structured data', function () 
             ->where('resource.json_ld.1.@type', 'BreadcrumbList')
         );
 });
+
+test('every page shares the url of its markdown version', function (string $url, string $markdown) {
+    $this->get($url)
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('seo.markdown_url', url($markdown)));
+})->with([
+    'home' => ['/', 'index.md'],
+    'events' => ['/events', 'events.md'],
+]);
