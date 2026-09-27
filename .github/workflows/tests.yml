@@ -34,12 +34,14 @@ jobs:
               - 'tests/**'
               - 'composer.*'
               - 'phpstan.neon'
+              - 'codecov.yml'
               - '.github/workflows/tests.yml'
             frontend:
               - 'resources/js/**'
               - 'package*.json'
               - 'vite.config.*'
               - 'tsconfig*'
+              - 'codecov.yml'
               - '.github/workflows/tests.yml'
 
   php:
@@ -72,6 +74,15 @@ jobs:
         run: composer test
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/php/clover.xml
+          flags: php
+          disable_search: true
 
   frontend:
     needs: changes
@@ -111,6 +122,15 @@ jobs:
         run: |
           npm run check
           npm run types:check
-          npm run test
+          npm run test:coverage
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/js/lcov.info
+          flags: frontend
+          disable_search: true
