@@ -77,7 +77,7 @@ services:
                     '--tries=1',
                     '--no-check-certificate',
                     '--spider',
-                    '--header=Host: laravelbd.com',
+                    '--header=Host: www.laravelbd.com',
                     'https://127.0.0.1/up',
                 ]
             interval: 30s
