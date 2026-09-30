@@ -2,7 +2,7 @@ import { Seo } from '@/components/seo';
 import { Field, Label } from '@/components/catalyst/fieldset';
 import { Input } from '@/components/catalyst/input';
 import { Text } from '@/components/catalyst/text';
-import { Button } from '@/components/design';
+import { Button, Check } from '@/components/design';
 import { FieldError } from '@/components/field-error';
 import { ValidatedForm } from '@/components/validated-form';
 import PasskeyVerify from '@/components/passkey-verify';
@@ -22,14 +22,21 @@ export default function Login({ status }: Props) {
                 description={t('auth.login.title')}
                 noindex
             />
-            <div className="space-y-2">
-                <h1 className="text-2xl/8 font-semibold text-zinc-950 sm:text-xl/8">
-                    {t('auth.login.title')}
-                </h1>
-                <p className="text-base/6 text-zinc-500 sm:text-sm/6">
-                    {t('auth.login.description')}
-                </p>
-            </div>
+            <h1 className="text-2xl/8 font-semibold text-zinc-950 sm:text-xl/8">
+                {t('auth.login.title')}
+            </h1>
+            <ul className="border-brand-green bg-brand-green/5 space-y-2 border-l-2 p-4 text-sm/6 text-zinc-700">
+                {[
+                    t('auth.login.info.1'),
+                    t('auth.login.info.2'),
+                    t('auth.login.info.3'),
+                ].map((item) => (
+                    <li key={item} className="flex gap-3">
+                        <Check className="text-brand-green mt-1.5 shrink-0" />
+                        <span>{item}</span>
+                    </li>
+                ))}
+            </ul>
             <PasskeyVerify
                 label={t('auth.passkey')}
                 loadingLabel={t('auth.passkey_loading')}
