@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $title_bn
  * @property string $abstract_en
  * @property string|null $abstract_bn
+ * @property list<array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool, value: string|list<string>}>|null $answers
  * @property string|null $notes
  * @property string $event_id
  * @property string|null $event_session_id
@@ -60,6 +61,7 @@ class TalkProposal extends Model
         return [
             'kind' => ProposalKind::class,
             'status' => ProposalStatus::class,
+            'answers' => 'array',
         ];
     }
 

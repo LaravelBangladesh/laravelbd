@@ -30,6 +30,7 @@ const proposal = {
     status: 'submitted',
     status_label: 'Submitted',
     notes: 'Looks promising.',
+    answers: [{ id: 'q1', label: 'Company', value: 'Cefalo' }],
     submitter: { name: 'Ada Lovelace', email: 'ada@example.test' },
     event_id: 'event-1',
     event: { slug: 'laracon-dhaka', title: 'Laracon Dhaka' },
@@ -61,6 +62,8 @@ describe('AdminProposalShow', () => {
             screen.getByText('How we run queues at scale.'),
         ).toBeInTheDocument();
         expect(screen.getByText('কিউ কীভাবে চালাই।')).toBeInTheDocument();
+        expect(screen.getByText('Company')).toBeInTheDocument();
+        expect(screen.getByText('Cefalo')).toBeInTheDocument();
     });
 
     it('prefills the review form', () => {
@@ -89,6 +92,7 @@ describe('AdminProposalShow', () => {
                     ...proposal,
                     abstract_bn: null,
                     notes: null,
+                    answers: [],
                     event: null,
                     event_id: null,
                     submitter: { name: null, email: null },
@@ -103,6 +107,7 @@ describe('AdminProposalShow', () => {
 
         expect(screen.getByText('Talk')).toBeInTheDocument();
         expect(screen.queryByText('কিউ কীভাবে চালাই।')).not.toBeInTheDocument();
+        expect(screen.queryByText('Company')).not.toBeInTheDocument();
         expect(screen.getByRole('textbox', { name: /Notes/ })).toHaveValue('');
         expect(screen.getByText('None')).toBeInTheDocument();
     });

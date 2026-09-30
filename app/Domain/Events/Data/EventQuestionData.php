@@ -55,6 +55,25 @@ final readonly class EventQuestionData
     }
 
     /**
+     * The shape a question takes when stored as JSON, e.g. on events.cfp_questions.
+     *
+     * @return array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool}
+     */
+    public function stored(string $id): array
+    {
+        return [
+            'id' => $id,
+            'kind' => $this->kind->value,
+            'label_en' => $this->labelEn,
+            'label_bn' => $this->labelBn,
+            'help_en' => $this->helpEn,
+            'help_bn' => $this->helpBn,
+            'options' => $this->options,
+            'required' => $this->required,
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $data
      * @return list<string>
      */

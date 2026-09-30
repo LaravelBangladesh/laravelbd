@@ -29,6 +29,7 @@ class EventProposalController extends Controller
         return Inertia::render('events/cfp', [
             'event' => EventPresenter::card($event),
             'kinds' => ProposalPresenter::kinds(),
+            'questions' => EventPresenter::cfpQuestions($event),
         ]);
     }
 

@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { Seo } from '@/components/seo';
 import { Field, Label } from '@/components/catalyst/fieldset';
 import { Input } from '@/components/catalyst/input';
@@ -16,6 +17,7 @@ import {
 } from '@/components/design';
 import { FieldError } from '@/components/field-error';
 import { FieldSelect, type FieldOption } from '@/components/field-select';
+import { QuestionField, type Question } from '@/components/question-field';
 import { ValidatedForm } from '@/components/validated-form';
 import { useTrans } from '@/lib/i18n';
 
@@ -26,6 +28,23 @@ type EventSummary = {
     starts_at: string | null;
     venue_name: string | null;
 };
+
+function FormSection({
+    title,
+    children,
+}: {
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section className="border-line grid gap-6 border-t pt-6">
+            <h2 className="text-ink text-lg font-medium tracking-tight">
+                {title}
+            </h2>
+            {children}
+        </section>
+    );
+}
 
 function Aside() {
     const t = useTrans();
@@ -74,9 +93,11 @@ function Aside() {
 export default function EventCfp({
     event,
     kinds,
+    questions,
 }: {
     event: EventSummary;
     kinds: FieldOption[];
+    questions: Question[];
 }) {
     const t = useTrans();
 
@@ -106,7 +127,21 @@ export default function EventCfp({
             </Section>
             <Section tone="canvas">
                 <Container className="grid gap-10 py-16 sm:py-20 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] lg:gap-14">
-                    <div className="min-w-0">
+                    <div className="min-w-0 space-y-6">
+                        <Surface className="p-6 sm:p-8">
+                            <Eyebrow>{t('cfp.profile_title')}</Eyebrow>
+                            <p className="text-ink-muted mt-3 text-sm leading-6">
+                                {t('cfp.profile_info')}
+                            </p>
+                            <p className="mt-3 text-sm">
+                                <Link
+                                    href="/account/directory"
+                                    className="text-brand-red underline"
+                                >
+                                    {t('events.rsvp.profile_link')}
+                                </Link>
+                            </p>
+                        </Surface>
                         <Surface className="p-6 sm:p-8">
                             <Eyebrow>{t('cfp.submit')}</Eyebrow>
                             <p className="text-ink-muted mt-3 text-sm">
@@ -120,61 +155,86 @@ export default function EventCfp({
                                 {({ processing, errors }) => (
                                     <>
                                         <FieldError error={errors.event} />
-                                        <div className="grid gap-6 md:grid-cols-2">
+                                        <FormSection
+                                            title={t('cfp.section_talk')}
+                                        >
+                                            <div className="grid gap-6 md:grid-cols-2">
+                                                <Field>
+                                                    <Label required>
+                                                        {t('admin.title_en')}
+                                                    </Label>
+                                                    <Input
+                                                        name="title_en"
+                                                        required
+                                                    />
+                                                    <FieldError
+                                                        error={errors.title_en}
+                                                    />
+                                                </Field>
+                                                <Field>
+                                                    <Label>
+                                                        {t('admin.title_bn')}
+                                                    </Label>
+                                                    <Input name="title_bn" />
+                                                </Field>
+                                            </div>
+                                            <div className="grid gap-6 md:grid-cols-2">
+                                                <Field>
+                                                    <Label required>
+                                                        {t('cfp.abstract_en')}
+                                                    </Label>
+                                                    <Textarea
+                                                        name="abstract_en"
+                                                        rows={5}
+                                                        required
+                                                    />
+                                                    <FieldError
+                                                        error={
+                                                            errors.abstract_en
+                                                        }
+                                                    />
+                                                </Field>
+                                                <Field>
+                                                    <Label>
+                                                        {t('cfp.abstract_bn')}
+                                                    </Label>
+                                                    <Textarea
+                                                        name="abstract_bn"
+                                                        rows={5}
+                                                    />
+                                                </Field>
+                                            </div>
                                             <Field>
                                                 <Label required>
-                                                    {t('admin.title_en')}
+                                                    {t('cfp.kind')}
                                                 </Label>
-                                                <Input
-                                                    name="title_en"
+                                                <FieldSelect
+                                                    name="kind"
+                                                    options={kinds}
+                                                    defaultValue="talk"
                                                     required
                                                 />
-                                                <FieldError
-                                                    error={errors.title_en}
-                                                />
                                             </Field>
-                                            <Field>
-                                                <Label>
-                                                    {t('admin.title_bn')}
-                                                </Label>
-                                                <Input name="title_bn" />
-                                            </Field>
-                                        </div>
-                                        <div className="grid gap-6 md:grid-cols-2">
-                                            <Field>
-                                                <Label required>
-                                                    {t('cfp.abstract_en')}
-                                                </Label>
-                                                <Textarea
-                                                    name="abstract_en"
-                                                    rows={5}
-                                                    required
-                                                />
-                                                <FieldError
-                                                    error={errors.abstract_en}
-                                                />
-                                            </Field>
-                                            <Field>
-                                                <Label>
-                                                    {t('cfp.abstract_bn')}
-                                                </Label>
-                                                <Textarea
-                                                    name="abstract_bn"
-                                                    rows={5}
-                                                />
-                                            </Field>
-                                        </div>
-                                        <Field>
-                                            <Label required>
-                                                {t('cfp.kind')}
-                                            </Label>
-                                            <FieldSelect
-                                                name="kind"
-                                                options={kinds}
-                                                defaultValue="talk"
-                                                required
-                                            />
-                                        </Field>
+                                        </FormSection>
+                                        {questions.length > 0 && (
+                                            <FormSection
+                                                title={t(
+                                                    'cfp.section_questions',
+                                                )}
+                                            >
+                                                {questions.map((question) => (
+                                                    <QuestionField
+                                                        key={question.id}
+                                                        question={question}
+                                                        error={
+                                                            errors[
+                                                                `answers.${question.id}`
+                                                            ]
+                                                        }
+                                                    />
+                                                ))}
+                                            </FormSection>
+                                        )}
                                         <div className={actionRowClass}>
                                             <Button
                                                 type="submit"

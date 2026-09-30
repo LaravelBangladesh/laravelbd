@@ -19,6 +19,7 @@ type ProposalDetail = {
     status: string;
     status_label: string;
     notes: string | null;
+    answers: { id: string; label: string; value: string }[];
     submitter: { name: string | null; email: string | null };
     event_id: string | null;
     event: { slug: string; title: string } | null;
@@ -72,6 +73,20 @@ export default function AdminProposalShow({
                     <p className="text-ink-muted mt-4 text-[15px] leading-7 whitespace-pre-line">
                         {proposal.abstract_bn}
                     </p>
+                )}
+                {proposal.answers.length > 0 && (
+                    <dl className="border-line mt-6 grid gap-4 border-t pt-6">
+                        {proposal.answers.map((answer) => (
+                            <div key={answer.id}>
+                                <dt className="text-ink text-sm font-medium">
+                                    {answer.label}
+                                </dt>
+                                <dd className="text-ink-muted mt-1 text-sm whitespace-pre-line">
+                                    {answer.value}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
                 )}
             </Surface>
             <ValidatedForm

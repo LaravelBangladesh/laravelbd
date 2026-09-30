@@ -6,12 +6,16 @@ use App\Domain\Cfp\Enums\ProposalKind;
 
 final readonly class ProposalData
 {
+    /**
+     * @param  array<string, mixed>  $answers  raw answers keyed by cfp question id
+     */
     public function __construct(
         public string $titleEn,
         public ?string $titleBn,
         public string $abstractEn,
         public ?string $abstractBn,
         public ProposalKind $kind,
+        public array $answers = [],
     ) {}
 
     /**
@@ -25,6 +29,7 @@ final readonly class ProposalData
             abstractEn: (string) $data['abstract_en'],
             abstractBn: self::nullableString($data, 'abstract_bn'),
             kind: ProposalKind::from((string) $data['kind']),
+            answers: is_array($data['answers'] ?? null) ? $data['answers'] : [],
         );
     }
 

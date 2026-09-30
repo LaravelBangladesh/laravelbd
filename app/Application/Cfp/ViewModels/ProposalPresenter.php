@@ -2,6 +2,7 @@
 
 namespace App\Application\Cfp\ViewModels;
 
+use App\Application\Shared\ViewModels\Localized;
 use App\Domain\Cfp\Enums\ProposalKind;
 use App\Domain\Cfp\Enums\ProposalStatus;
 use App\Domain\Cfp\Models\TalkProposal;
@@ -41,6 +42,11 @@ class ProposalPresenter
             'abstract_en' => $proposal->abstract_en,
             'abstract_bn' => $proposal->abstract_bn,
             'notes' => $proposal->notes,
+            'answers' => array_map(fn (array $answer) => [
+                'id' => $answer['id'],
+                'label' => Localized::pick($answer, 'label'),
+                'value' => implode(', ', (array) $answer['value']),
+            ], $proposal->answers ?? []),
             'submitter' => [
                 'name' => $proposal->submitter?->name,
                 'email' => $proposal->submitter?->email,

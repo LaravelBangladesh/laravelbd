@@ -1,5 +1,6 @@
 <?php
 
+use App\Application\Cfp\Http\Controllers\Admin\CfpQuestionController;
 use App\Application\Cfp\Http\Controllers\Admin\TalkProposalController;
 use App\Application\Content\Http\Controllers\Admin\ResourceController;
 use App\Application\Directory\Http\Controllers\Admin\DirectoryListingController;
@@ -40,6 +41,10 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('events/{event}/questions/order', [EventQuestionController::class, 'reorder'])->name('events.questions.reorder');
     Route::patch('events/{event}/questions/{question}', [EventQuestionController::class, 'update'])->name('events.questions.update');
     Route::delete('events/{event}/questions/{question}', [EventQuestionController::class, 'destroy'])->name('events.questions.destroy');
+    Route::post('events/{event}/cfp-questions', [CfpQuestionController::class, 'store'])->name('events.cfp-questions.store');
+    Route::patch('events/{event}/cfp-questions/order', [CfpQuestionController::class, 'reorder'])->name('events.cfp-questions.reorder');
+    Route::patch('events/{event}/cfp-questions/{question}', [CfpQuestionController::class, 'update'])->name('events.cfp-questions.update');
+    Route::delete('events/{event}/cfp-questions/{question}', [CfpQuestionController::class, 'destroy'])->name('events.cfp-questions.destroy');
 
     Route::resource('speakers', SpeakerController::class)->except(['show']);
     Route::resource('resources', ResourceController::class)->except(['show']);

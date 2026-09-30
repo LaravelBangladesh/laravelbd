@@ -42,6 +42,7 @@ use Illuminate\Support\Carbon;
  * @property bool $cfp_enabled
  * @property Carbon|null $cfp_opens_at
  * @property Carbon|null $cfp_closes_at
+ * @property list<array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool}>|null $cfp_questions
  * @property string|null $cover_path
  * @property string|null $short_url
  * @property Carbon|null $published_at
@@ -96,6 +97,7 @@ class Event extends Model
             'cfp_enabled' => 'boolean',
             'cfp_opens_at' => 'datetime',
             'cfp_closes_at' => 'datetime',
+            'cfp_questions' => 'array',
         ];
     }
 

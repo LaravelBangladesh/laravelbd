@@ -14,6 +14,9 @@ class StoreEventProposalRequest extends FormRequest
     }
 
     /**
+     * Each answer is a string (text and single choice) or a list of strings
+     * (multiple choice); the action checks the value against its question.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
@@ -24,6 +27,9 @@ class StoreEventProposalRequest extends FormRequest
             'abstract_en' => ['required', 'string'],
             'abstract_bn' => ['nullable', 'string'],
             'kind' => ['required', Rule::enum(ProposalKind::class)],
+            'answers' => ['nullable', 'array', 'max:50'],
+            'answers.*' => ['nullable', 'max:2000'],
+            'answers.*.*' => ['string', 'max:2000'],
         ];
     }
 }

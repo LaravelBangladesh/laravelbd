@@ -108,3 +108,51 @@ test('the event filter lists events with proposals or an open cfp', function () 
         ->assertInertia(fn (Assert $page) => $page
             ->has('events', 2));
 });
+
+test('the proposal page shows each recorded answer with its question label', function () {
+    $proposal = TalkProposal::factory()->create([
+        'answers' => [
+            [
+                'id' => 'q1',
+                'kind' => 'short_text',
+                'label_en' => 'Company',
+                'label_bn' => null,
+                'help_en' => null,
+                'help_bn' => null,
+                'options' => null,
+                'required' => true,
+                'value' => 'Cefalo',
+            ],
+            [
+                'id' => 'q2',
+                'kind' => 'multiple_choice',
+                'label_en' => 'Topics',
+                'label_bn' => null,
+                'help_en' => null,
+                'help_bn' => null,
+                'options' => ['APIs', 'Queues'],
+                'required' => false,
+                'value' => ['APIs', 'Queues'],
+            ],
+        ],
+    ]);
+    $moderator = User::factory()->moderator()->create();
+
+    $this->actingAs($moderator)
+        ->get(route('admin.proposals.show', $proposal))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('proposal.answers', [
+                ['id' => 'q1', 'label' => 'Company', 'value' => 'Cefalo'],
+                ['id' => 'q2', 'label' => 'Topics', 'value' => 'APIs, Queues'],
+            ]));
+});
+
+test('a proposal without answers shows none', function () {
+    $proposal = TalkProposal::factory()->create();
+    $moderator = User::factory()->moderator()->create();
+
+    $this->actingAs($moderator)
+        ->get(route('admin.proposals.show', $proposal))
+        ->assertInertia(fn (Assert $page) => $page->where('proposal.answers', []));
+});

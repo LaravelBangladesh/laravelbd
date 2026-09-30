@@ -40,7 +40,7 @@ import { SessionSpeakerFields } from '@/components/session-speaker-fields';
 import { cn } from '@/lib/utils';
 import { useTrans } from '@/lib/i18n';
 
-const TABS = ['sessions', 'questions', 'attendees', 'media'] as const;
+const TABS = ['sessions', 'questions', 'cfp', 'attendees', 'media'] as const;
 
 type TabId = (typeof TABS)[number];
 type SpeakerOption = { id: string; name: string };
@@ -59,7 +59,7 @@ type Question = {
     help_bn: string | null;
     options: string[];
     required: boolean;
-    position: number;
+    position?: number;
 };
 
 const CHOICE_KINDS = ['single_choice', 'multiple_choice'];
@@ -71,6 +71,7 @@ type ManagedEvent = {
     short_url: string | null;
     sessions: Session[];
     questions: Question[];
+    cfp_questions: Question[];
     attendees: {
         id: string;
         name: string | null;
@@ -226,11 +227,11 @@ function SessionSchedule({
 }
 
 function QuestionList({
-    eventId,
+    basePath,
     questions,
     onEdit,
 }: {
-    eventId: string;
+    basePath: string;
     questions: Question[];
     onEdit: (id: string) => void;
 }) {
@@ -242,7 +243,7 @@ function QuestionList({
         next.splice(index + delta, 0, moved);
 
         router.patch(
-            `/admin/events/${eventId}/questions/order`,
+            `${basePath}/order`,
             { question_ids: next.map((question) => question.id) },
             { preserveScroll: true, preserveState: true },
         );
@@ -295,7 +296,7 @@ function QuestionList({
                                     {t('admin.edit')}
                                 </Button>
                                 <Form
-                                    action={`/admin/events/${eventId}/questions/${question.id}`}
+                                    action={`${basePath}/${question.id}`}
                                     method="delete"
                                     options={{ preserveScroll: true }}
                                 >
@@ -313,12 +314,12 @@ function QuestionList({
 }
 
 function QuestionDialog({
-    eventId,
+    basePath,
     question,
     questionKinds,
     onClose,
 }: {
-    eventId: string;
+    basePath: string;
     question?: Question;
     questionKinds: FieldOption[];
     onClose: () => void;
@@ -334,11 +335,7 @@ function QuestionDialog({
                 {isNew ? t('admin.add_question') : t('admin.edit_question')}
             </DialogTitle>
             <ValidatedForm
-                action={
-                    isNew
-                        ? `/admin/events/${eventId}/questions`
-                        : `/admin/events/${eventId}/questions/${question.id}`
-                }
+                action={isNew ? basePath : `${basePath}/${question.id}`}
                 method={isNew ? 'post' : 'patch'}
                 options={{ preserveScroll: true }}
                 onSuccess={onClose}
@@ -506,11 +503,18 @@ export default function AdminEventsManage({
     const { url } = usePage();
     const tab = tabFromUrl(url);
     const [draft, setDraft] = useState<string | null>(null);
-    const [questionDraft, setQuestionDraft] = useState<string | null>(null);
+    const [questionDraft, setQuestionDraft] = useState<{
+        basePath: string;
+        id: string;
+    } | null>(null);
     const editing = event.sessions.find((session) => session.id === draft);
-    const editingQuestion = event.questions.find(
-        (question) => question.id === questionDraft,
-    );
+    const questionsPath = `/admin/events/${event.id}/questions`;
+    const cfpQuestionsPath = `/admin/events/${event.id}/cfp-questions`;
+    const editingQuestion = (
+        questionDraft?.basePath === cfpQuestionsPath
+            ? event.cfp_questions
+            : event.questions
+    ).find((question) => question.id === questionDraft?.id);
 
     const tabs = [
         {
@@ -522,6 +526,11 @@ export default function AdminEventsManage({
             id: 'questions',
             label: t('admin.events_questions'),
             count: event.questions.length,
+        },
+        {
+            id: 'cfp',
+            label: t('admin.events_cfp_questions'),
+            count: event.cfp_questions.length,
         },
         {
             id: 'attendees',
@@ -637,7 +646,12 @@ export default function AdminEventsManage({
                         <div className={pageHeaderClass}>
                             <Eyebrow>{t('admin.events_questions')}</Eyebrow>
                             <Button
-                                onClick={() => setQuestionDraft('new')}
+                                onClick={() =>
+                                    setQuestionDraft({
+                                        basePath: questionsPath,
+                                        id: 'new',
+                                    })
+                                }
                                 className="w-full sm:w-auto"
                             >
                                 {t('admin.add_question')}
@@ -652,9 +666,50 @@ export default function AdminEventsManage({
                             </div>
                         ) : (
                             <QuestionList
-                                eventId={event.id}
+                                basePath={questionsPath}
                                 questions={event.questions}
-                                onEdit={setQuestionDraft}
+                                onEdit={(id) =>
+                                    setQuestionDraft({
+                                        basePath: questionsPath,
+                                        id,
+                                    })
+                                }
+                            />
+                        )}
+                    </TabPanel>
+
+                    <TabPanel>
+                        <div className={pageHeaderClass}>
+                            <Eyebrow>{t('admin.events_cfp_questions')}</Eyebrow>
+                            <Button
+                                onClick={() =>
+                                    setQuestionDraft({
+                                        basePath: cfpQuestionsPath,
+                                        id: 'new',
+                                    })
+                                }
+                                className="w-full sm:w-auto"
+                            >
+                                {t('admin.add_question')}
+                            </Button>
+                        </div>
+                        {event.cfp_questions.length === 0 ? (
+                            <div className="mt-6">
+                                <AdminEmptyState
+                                    label={t('admin.events_cfp_questions')}
+                                    description={t('admin.no_cfp_questions')}
+                                />
+                            </div>
+                        ) : (
+                            <QuestionList
+                                basePath={cfpQuestionsPath}
+                                questions={event.cfp_questions}
+                                onEdit={(id) =>
+                                    setQuestionDraft({
+                                        basePath: cfpQuestionsPath,
+                                        id,
+                                    })
+                                }
                             />
                         )}
                     </TabPanel>
@@ -880,16 +935,16 @@ export default function AdminEventsManage({
                     onClose={() => setDraft(null)}
                 />
             )}
-            {questionDraft === 'new' && (
+            {questionDraft?.id === 'new' && (
                 <QuestionDialog
-                    eventId={event.id}
+                    basePath={questionDraft.basePath}
                     questionKinds={questionKinds}
                     onClose={() => setQuestionDraft(null)}
                 />
             )}
-            {editingQuestion && (
+            {questionDraft && editingQuestion && (
                 <QuestionDialog
-                    eventId={event.id}
+                    basePath={questionDraft.basePath}
                     question={editingQuestion}
                     questionKinds={questionKinds}
                     onClose={() => setQuestionDraft(null)}
