@@ -14,9 +14,6 @@ const translations = {
     'cfp.lead': 'We welcome first time speakers.',
     'cfp.submit': 'Submit a talk',
     'cfp.profile_note': 'We use your account profile.',
-    'cfp.profile_title': 'Your profile comes first',
-    'cfp.profile_info': 'Same profile for everything.',
-    'events.rsvp.profile_link': 'Complete your profile',
     'cfp.abstract_en': 'Abstract (English)',
     'cfp.abstract_bn': 'Abstract (Bangla)',
     'cfp.kind': 'Type',
@@ -88,12 +85,6 @@ describe('EventCfp', () => {
         expect(
             screen.queryByRole('heading', { name: 'Extra questions' }),
         ).not.toBeInTheDocument();
-        expect(
-            screen.getByText('Same profile for everything.'),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole('link', { name: 'Complete your profile' }),
-        ).toHaveAttribute('href', '/account/directory');
         expect(
             screen.getByRole('button', { name: 'Submit a talk' }),
         ).toBeInTheDocument();

@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { Seo } from '@/components/seo';
 import { Field, Label } from '@/components/catalyst/fieldset';
 import { Input } from '@/components/catalyst/input';
@@ -128,20 +127,6 @@ export default function EventCfp({
             <Section tone="canvas">
                 <Container className="grid gap-10 py-16 sm:py-20 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] lg:gap-14">
                     <div className="min-w-0 space-y-6">
-                        <Surface className="p-6 sm:p-8">
-                            <Eyebrow>{t('cfp.profile_title')}</Eyebrow>
-                            <p className="text-ink-muted mt-3 text-sm leading-6">
-                                {t('cfp.profile_info')}
-                            </p>
-                            <p className="mt-3 text-sm">
-                                <Link
-                                    href="/account/directory"
-                                    className="text-brand-red underline"
-                                >
-                                    {t('events.rsvp.profile_link')}
-                                </Link>
-                            </p>
-                        </Surface>
                         <Surface className="p-6 sm:p-8">
                             <Eyebrow>{t('cfp.submit')}</Eyebrow>
                             <p className="text-ink-muted mt-3 text-sm">
