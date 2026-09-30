@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { routerMock } from '@/test/inertia';
+import { formSubmitSpy, routerMock } from '@/test/inertia';
 import { renderPage } from '@/test/render';
 
 vi.mock('@inertiajs/react', async () =>
@@ -54,6 +54,8 @@ const translations = {
     'admin.add_question': 'Add question',
     'admin.edit_question': 'Edit question',
     'admin.no_questions': 'No questions yet.',
+    'admin.events_cfp_questions': 'CFP questions',
+    'admin.no_cfp_questions': 'No CFP questions yet.',
     'admin.question_kind': 'Question type',
     'admin.question_label_en': 'Question',
     'admin.question_label_bn': 'Question (Bangla)',
@@ -109,6 +111,7 @@ const baseEvent: ManagedEvent = {
         },
     ],
     questions: [],
+    cfp_questions: [],
     attendees: [
         {
             id: 'a1',
@@ -186,8 +189,9 @@ describe('AdminEventsManage header', () => {
 
         expect(tabs[0]).toHaveTextContent('Sessions2');
         expect(tabs[1]).toHaveTextContent('Questions0');
-        expect(tabs[2]).toHaveTextContent('Attendees1');
-        expect(tabs[3]).toHaveTextContent('Media1');
+        expect(tabs[2]).toHaveTextContent('CFP questions0');
+        expect(tabs[3]).toHaveTextContent('Attendees1');
+        expect(tabs[4]).toHaveTextContent('Media1');
     });
 });
 
@@ -203,8 +207,9 @@ describe('tab selection', () => {
 
     it.each([
         ['questions', 1],
-        ['attendees', 2],
-        ['media', 3],
+        ['cfp', 2],
+        ['attendees', 3],
+        ['media', 4],
     ])('selects the %s tab from the url', (tab, index) => {
         renderManage(baseEvent, `/admin/events/e1?tab=${tab}`);
 
@@ -756,5 +761,92 @@ describe('attendee answers', () => {
 
         expect(screen.getByText(/Company/)).toBeInTheDocument();
         expect(screen.getByText(/Cefalo/)).toBeInTheDocument();
+    });
+});
+
+const cfpQuestion = {
+    ...choiceQuestion,
+    id: 'c1',
+    label_en: 'Talk level',
+    options: ['Beginner', 'Advanced'],
+};
+
+const withCfpQuestions = {
+    ...baseEvent,
+    cfp_questions: [
+        cfpQuestion,
+        { ...question, id: 'c2', label_en: 'Anything else?' },
+    ],
+};
+
+function cfpUrl() {
+    return '/admin/events/e1?tab=cfp';
+}
+
+describe('cfp questions tab', () => {
+    it('shows the empty state without cfp questions', () => {
+        renderManage(baseEvent, cfpUrl());
+
+        expect(screen.getByText('No CFP questions yet.')).toBeInTheDocument();
+    });
+
+    it('lists cfp questions and reorders them on the cfp endpoint', async () => {
+        const user = userEvent.setup();
+        renderManage(withCfpQuestions, cfpUrl());
+
+        expect(screen.getByText('Talk level')).toBeInTheDocument();
+        expect(screen.getByText('Anything else?')).toBeInTheDocument();
+
+        await user.click(
+            screen.getAllByRole('button', { name: 'Move down' })[0],
+        );
+
+        expect(routerMock.patch).toHaveBeenCalledWith(
+            '/admin/events/e1/cfp-questions/order',
+            { question_ids: ['c2', 'c1'] },
+            expect.objectContaining({ preserveScroll: true }),
+        );
+    });
+
+    it('adds a cfp question through the cfp endpoint', async () => {
+        const user = userEvent.setup();
+        renderManage(baseEvent, cfpUrl());
+
+        await user.click(screen.getByRole('button', { name: 'Add question' }));
+        await user.type(
+            document.querySelector('input[name="label_en"]') as HTMLElement,
+            'Talk level',
+        );
+        await user.click(screen.getByRole('button', { name: 'Add' }));
+
+        expect(formSubmitSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                action: '/admin/events/e1/cfp-questions',
+                method: 'post',
+            }),
+        );
+    });
+
+    it('edits a cfp question through the cfp endpoint', async () => {
+        const user = userEvent.setup();
+        renderManage(withCfpQuestions, cfpUrl());
+
+        await user.click(screen.getAllByRole('button', { name: 'Edit' })[0]);
+
+        expect(document.querySelector('input[name="label_en"]')).toHaveValue(
+            'Talk level',
+        );
+        expect(document.querySelector('textarea[name="options"]')).toHaveValue(
+            'Beginner\nAdvanced',
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(formSubmitSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                action: '/admin/events/e1/cfp-questions/c1',
+                method: 'patch',
+            }),
+        );
     });
 });

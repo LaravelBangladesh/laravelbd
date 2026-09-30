@@ -29,3 +29,15 @@ test('leaves the optional bangla fields null when they are absent', function () 
     expect($data->titleBn)->toBeNull()
         ->and($data->abstractBn)->toBeNull();
 });
+
+test('carries raw answers and defaults them to an empty list', function () {
+    $base = [
+        'title_en' => 'Talk',
+        'abstract_en' => 'Abstract',
+        'kind' => ProposalKind::Talk->value,
+    ];
+
+    expect(ProposalData::fromValidated([...$base, 'answers' => ['q1' => 'Cefalo']])->answers)->toBe(['q1' => 'Cefalo'])
+        ->and(ProposalData::fromValidated($base)->answers)->toBe([])
+        ->and(ProposalData::fromValidated($base)->attributes())->not->toHaveKey('answers');
+});

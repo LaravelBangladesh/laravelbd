@@ -20,6 +20,7 @@ const translations = {
     'auth.name': 'Name',
     'profile.completeness': 'Profile completeness',
     'profile.completeness_lead': 'Add these before you register.',
+    'profile.shared_note': 'Same profile everywhere.',
     'profile.continue_to': 'Complete these to continue to :destination.',
     'profile.field.name': 'Full name',
     'profile.field.photo': 'Profile photo',
@@ -97,6 +98,9 @@ describe('AccountDirectory profile completeness', () => {
         ).toBeInTheDocument();
         expect(screen.getAllByText('Done')).toHaveLength(4);
         expect(screen.queryByText('Missing')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Same profile everywhere.'),
+        ).not.toBeInTheDocument();
     });
 
     it('flags the fields the server reports as missing', () => {
@@ -105,6 +109,9 @@ describe('AccountDirectory profile completeness', () => {
         });
 
         expect(screen.getAllByText('Missing')).toHaveLength(2);
+        expect(
+            screen.getByText('Same profile everywhere.'),
+        ).toBeInTheDocument();
         expect(screen.getAllByText('Done')).toHaveLength(2);
         expect(screen.getByText('Profile photo')).toBeInTheDocument();
         expect(screen.getByText('Company or institution')).toBeInTheDocument();

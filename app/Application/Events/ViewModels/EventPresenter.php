@@ -3,6 +3,7 @@
 namespace App\Application\Events\ViewModels;
 
 use App\Application\Shared\ViewModels\Breadcrumbs;
+use App\Application\Shared\ViewModels\Localized;
 use App\Application\Shared\ViewModels\MetaDescription;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
@@ -228,6 +229,10 @@ class EventPresenter
                 'required' => $question->required,
                 'position' => $question->position,
             ])->values()->all(),
+            'cfp_questions' => array_map(fn (array $question) => [
+                ...$question,
+                'kind_label' => QuestionKind::from($question['kind'])->label(),
+            ], $event->cfp_questions ?? []),
             'attendees' => $event->registrations
                 ->filter(fn (EventRegistration $registration) => $registration->status !== RegistrationStatus::Cancelled)
                 ->map(fn (EventRegistration $registration) => [
@@ -246,6 +251,23 @@ class EventPresenter
                         ->all(),
                 ])->values()->all(),
         ];
+    }
+
+    /**
+     * The event's call-for-proposals questions, localized for the public form.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function cfpQuestions(Event $event): array
+    {
+        return array_map(fn (array $question) => [
+            'id' => $question['id'],
+            'kind' => $question['kind'],
+            'label' => Localized::pick($question, 'label'),
+            'help' => Localized::pick($question, 'help'),
+            'options' => $question['options'] ?? [],
+            'required' => $question['required'],
+        ], $event->cfp_questions ?? []);
     }
 
     /**

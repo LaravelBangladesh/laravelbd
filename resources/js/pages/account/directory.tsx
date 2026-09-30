@@ -32,6 +32,11 @@ function ProfileCompleteness({
                     ? t('profile.continue_to', { destination: returnTo.label })
                     : t('profile.completeness_lead')}
             </p>
+            {missing.length > 0 && (
+                <p className="text-ink-muted mt-2 text-[15px] leading-7">
+                    {t('profile.shared_note')}
+                </p>
+            )}
             <ul className="mt-4 space-y-2">
                 {PROFILE_FIELDS.map((field) => {
                     const done = !missing.includes(field);

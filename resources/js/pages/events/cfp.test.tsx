@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { renderPage } from '@/test/render';
+import { setFormErrors } from '@/test/inertia';
 
 vi.mock('@inertiajs/react', async () =>
     (await import('@/test/inertia')).inertiaMock(),
@@ -27,7 +28,28 @@ const translations = {
     'admin.title_en': 'Title (English)',
     'admin.title_bn': 'Title (Bangla)',
     'admin.cancel': 'Cancel',
+    'cfp.section_talk': 'Talk details',
+    'cfp.section_questions': 'Extra questions',
 };
+
+const questions = [
+    {
+        id: 'q-company',
+        kind: 'short_text',
+        label: 'Company',
+        help: '',
+        options: [],
+        required: true,
+    },
+    {
+        id: 'q-topics',
+        kind: 'multiple_choice',
+        label: 'Topics',
+        help: 'Pick any.',
+        options: ['APIs', 'Queues'],
+        required: false,
+    },
+];
 
 const kinds = [
     { value: 'talk', label: 'Talk' },
@@ -43,8 +65,12 @@ const event = {
 };
 
 describe('EventCfp', () => {
+    afterEach(() => setFormErrors());
+
     it('renders the proposal form for the event', () => {
-        renderPage(<Page event={event} kinds={kinds} />, { translations });
+        renderPage(<Page event={event} kinds={kinds} questions={[]} />, {
+            translations,
+        });
 
         expect(screen.getByText('Laracon Dhaka')).toBeInTheDocument();
         expect(screen.getByText('Conference')).toBeInTheDocument();
@@ -53,6 +79,12 @@ describe('EventCfp', () => {
         expect(screen.getByText('Title (English)')).toBeInTheDocument();
         expect(screen.getByText('Abstract (Bangla)')).toBeInTheDocument();
         expect(screen.getByText('Type')).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { name: 'Talk details' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('heading', { name: 'Extra questions' }),
+        ).not.toBeInTheDocument();
         expect(
             screen.getByRole('button', { name: 'Submit a talk' }),
         ).toBeInTheDocument();
@@ -67,6 +99,7 @@ describe('EventCfp', () => {
             <Page
                 event={{ ...event, starts_at: null, venue_name: null }}
                 kinds={kinds}
+                questions={[]}
             />,
             { translations },
         );
@@ -78,9 +111,33 @@ describe('EventCfp', () => {
     });
 
     it('always shows the guidance aside', () => {
-        renderPage(<Page event={event} kinds={kinds} />, { translations });
+        renderPage(<Page event={event} kinds={kinds} questions={[]} />, {
+            translations,
+        });
 
         expect(screen.getByText('Practical lessons')).toBeInTheDocument();
         expect(screen.getByText('You hear back')).toBeInTheDocument();
+    });
+
+    it('asks the event questions in their own section', () => {
+        setFormErrors({ 'answers.q-company': 'This answer is required.' });
+
+        const { container } = renderPage(
+            <Page event={event} kinds={kinds} questions={questions} />,
+            { translations },
+        );
+
+        expect(
+            screen.getByRole('heading', { name: 'Extra questions' }),
+        ).toBeInTheDocument();
+        expect(
+            container.querySelector('input[name="answers[q-company]"]'),
+        ).toBeInTheDocument();
+        expect(
+            container.querySelectorAll('input[name="answers[q-topics][]"]'),
+        ).toHaveLength(2);
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'This answer is required.',
+        );
     });
 });
