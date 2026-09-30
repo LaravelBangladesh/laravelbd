@@ -42,57 +42,6 @@ const translations = {
     'events.rsvp.closed_note': 'Registration is closed',
 };
 
-const questions = [
-    {
-        id: 'q-short',
-        kind: 'short_text',
-        label: 'Company / role',
-        help: 'For your badge.',
-        options: [],
-        required: true,
-    },
-    {
-        id: 'q-long',
-        kind: 'long_text',
-        label: 'Anything else?',
-        help: 'Optional notes.',
-        options: [],
-        required: false,
-    },
-    {
-        id: 'q-short-nohelp',
-        kind: 'short_text',
-        label: 'Nickname',
-        help: '',
-        options: [],
-        required: false,
-    },
-    {
-        id: 'q-long-nohelp',
-        kind: 'long_text',
-        label: 'Comments',
-        help: '',
-        options: [],
-        required: false,
-    },
-    {
-        id: 'q-single',
-        kind: 'single_choice',
-        label: 'T-shirt size',
-        help: '',
-        options: ['S', 'M'],
-        required: false,
-    },
-    {
-        id: 'q-multi',
-        kind: 'multiple_choice',
-        label: 'Topics of interest',
-        help: 'Pick any.',
-        options: ['Queues', 'Testing'],
-        required: false,
-    },
-];
-
 const closedCfp = {
     enabled: false,
     accepting: false,
@@ -135,7 +84,6 @@ const event = {
     is_full: false,
     can_rsvp: true,
     registration_enabled: true,
-    questions: [],
     registration: null,
     viewer: { profile_complete: true },
     cfp: closedCfp,
@@ -305,9 +253,10 @@ describe('EventShow', () => {
             auth: { user: testUser },
         });
 
-        expect(
-            screen.getByRole('button', { name: 'Register' }),
-        ).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Register' })).toHaveAttribute(
+            'href',
+            '/events/laracon-dhaka/register',
+        );
         expect(
             screen.queryByText('This event is full, you will be waitlisted.'),
         ).not.toBeInTheDocument();
@@ -372,7 +321,7 @@ describe('EventShow', () => {
         });
 
         expect(
-            screen.queryByRole('button', { name: 'Register' }),
+            screen.queryByRole('link', { name: 'Register' }),
         ).not.toBeInTheDocument();
     });
 });
@@ -524,7 +473,7 @@ describe('EventShow profile completeness', () => {
             screen.getByRole('link', { name: 'Complete your profile' }),
         ).toHaveAttribute('href', '/account/directory');
         expect(
-            screen.getByRole('button', { name: 'Register' }),
+            screen.getByRole('link', { name: 'Register' }),
         ).toBeInTheDocument();
     });
 
@@ -585,67 +534,7 @@ describe('EventShow profile completeness', () => {
 
         expect(screen.getByText('Registration is closed')).toBeInTheDocument();
         expect(
-            screen.queryByRole('button', { name: 'Register' }),
+            screen.queryByRole('link', { name: 'Register' }),
         ).not.toBeInTheDocument();
-    });
-
-    it('renders a field for every question kind', () => {
-        const { container } = renderPage(
-            <Page event={{ ...event, questions }} />,
-            { translations, auth: { user: testUser } },
-        );
-
-        expect(
-            container.querySelector('input[name="answers[q-short]"]'),
-        ).toHaveAttribute('type', 'text');
-        expect(
-            container.querySelector('textarea[name="answers[q-long]"]'),
-        ).toBeInTheDocument();
-        expect(
-            container.querySelectorAll('input[name="answers[q-single]"]'),
-        ).toHaveLength(2);
-        expect(
-            container.querySelectorAll('input[name="answers[q-multi][]"]'),
-        ).toHaveLength(2);
-        expect(screen.getByText('Company / role')).toBeInTheDocument();
-        expect(screen.getByText('For your badge.')).toBeInTheDocument();
-        expect(screen.getByText('Optional notes.')).toBeInTheDocument();
-        expect(
-            container.querySelector('input[name="answers[q-short-nohelp]"]'),
-        ).not.toHaveAttribute('aria-describedby');
-        expect(
-            container.querySelector('textarea[name="answers[q-long-nohelp]"]'),
-        ).not.toHaveAttribute('aria-describedby');
-        expect(screen.getByText('Pick any.')).toBeInTheDocument();
-        expect(screen.getByLabelText('S')).toBeInTheDocument();
-        expect(screen.getByLabelText('Queues')).toBeInTheDocument();
-        expect(
-            screen.getByRole('button', { name: 'Register' }),
-        ).toBeInTheDocument();
-    });
-
-    it('keeps the one click button when there are no questions', () => {
-        const { container } = renderPage(<Page event={event} />, {
-            translations,
-            auth: { user: testUser },
-        });
-
-        expect(container.querySelector('input[type="text"]')).toBeNull();
-        expect(
-            screen.getByRole('button', { name: 'Register' }),
-        ).toBeInTheDocument();
-    });
-
-    it('shows inline answer errors from the server', () => {
-        setFormErrors({ 'answers.q-short': 'This answer is required.' });
-
-        renderPage(<Page event={{ ...event, questions }} />, {
-            translations,
-            auth: { user: testUser },
-        });
-
-        expect(screen.getByRole('alert')).toHaveTextContent(
-            'This answer is required.',
-        );
     });
 });

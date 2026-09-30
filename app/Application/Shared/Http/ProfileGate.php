@@ -21,6 +21,7 @@ class ProfileGate
     private const LABELS = [
         'events.show' => 'profile.return_to.event',
         'events.cfp.create' => 'profile.return_to.cfp',
+        'events.register.create' => 'profile.return_to.register',
     ];
 
     public static function redirect(string $routeName, string $slug): RedirectResponse

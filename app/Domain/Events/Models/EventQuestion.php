@@ -70,4 +70,23 @@ class EventQuestion extends Model
     {
         return $this->options ?? [];
     }
+
+    /**
+     * The question as an answer stores it, so the answer outlives edits.
+     *
+     * @return array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool}
+     */
+    public function snapshot(): array
+    {
+        return [
+            'id' => $this->id,
+            'kind' => $this->kind->value,
+            'label_en' => $this->label_en,
+            'label_bn' => $this->label_bn,
+            'help_en' => $this->help_en,
+            'help_bn' => $this->help_bn,
+            'options' => $this->options,
+            'required' => $this->required,
+        ];
+    }
 }

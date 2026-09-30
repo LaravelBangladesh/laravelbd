@@ -3,7 +3,6 @@ import type { JsonLd } from '@/types/seo';
 import { Form, Link, usePage } from '@inertiajs/react';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { ShortUrl } from '@/components/short-url';
-import { QuestionField, type Question } from '@/components/question-field';
 import {
     actionRowClass,
     Button,
@@ -51,7 +50,6 @@ type EventDetail = {
     is_full: boolean;
     can_rsvp: boolean;
     registration_enabled: boolean;
-    questions: Question[];
     registration: { status: string; status_label: string } | null;
     viewer: { profile_complete: boolean } | null;
     cfp: {
@@ -208,6 +206,37 @@ export default function EventShow({ event }: { event: EventDetail }) {
                     </MetaRow>
                 </dl>
 
+                {event.cfp.enabled && (
+                    <Surface className="mt-8 p-5 sm:p-6">
+                        <Eyebrow>{t('cfp.title')}</Eyebrow>
+                        {event.cfp.accepting ? (
+                            <>
+                                <p className="text-ink-muted mt-3 text-[15px] leading-7">
+                                    {event.cfp.closes_at
+                                        ? t('events.cfp.open_until', {
+                                              date: event.cfp.closes_at,
+                                          })
+                                        : t('events.cfp.open')}
+                                </p>
+                                <div className={`${actionRowClass} mt-4`}>
+                                    <Button href={`/events/${event.slug}/cfp`}>
+                                        {t('cfp.submit')}
+                                    </Button>
+                                </div>
+                                {profileIncomplete && <ProfileHint />}
+                            </>
+                        ) : (
+                            <p className="text-ink-muted mt-3 text-[15px] leading-7">
+                                {event.cfp.pending && event.cfp.opens_at
+                                    ? t('events.cfp.opens_on', {
+                                          date: event.cfp.opens_at,
+                                      })
+                                    : t('events.cfp.closed')}
+                            </p>
+                        )}
+                    </Surface>
+                )}
+
                 <div className="mt-8">
                     {!auth.user ? (
                         <div className={actionRowClass}>
@@ -240,86 +269,25 @@ export default function EventShow({ event }: { event: EventDetail }) {
                             )}
                         </Form>
                     ) : event.can_rsvp ? (
-                        <Form
-                            action={`/events/${event.slug}/rsvp`}
-                            method="post"
-                        >
-                            {({ processing, errors }) => (
-                                <div>
-                                    {event.is_full && (
-                                        <p className="text-ink-muted mb-3">
-                                            {t('events.rsvp.full')}
-                                        </p>
-                                    )}
-                                    {event.questions.length > 0 && (
-                                        <div className="mb-6 grid max-w-xl gap-5">
-                                            {event.questions.map((question) => (
-                                                <QuestionField
-                                                    key={question.id}
-                                                    question={question}
-                                                    error={
-                                                        (
-                                                            errors as Record<
-                                                                string,
-                                                                string
-                                                            >
-                                                        )[
-                                                            `answers.${question.id}`
-                                                        ]
-                                                    }
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                    <div className={actionRowClass}>
-                                        <Button
-                                            type="submit"
-                                            disabled={processing}
-                                        >
-                                            {t('events.rsvp.register')}
-                                        </Button>
-                                    </div>
-                                    {profileIncomplete && <ProfileHint />}
-                                </div>
+                        <div>
+                            {event.is_full && (
+                                <p className="text-ink-muted mb-3">
+                                    {t('events.rsvp.full')}
+                                </p>
                             )}
-                        </Form>
+                            <div className={actionRowClass}>
+                                <Button href={`/events/${event.slug}/register`}>
+                                    {t('events.rsvp.register')}
+                                </Button>
+                            </div>
+                            {profileIncomplete && <ProfileHint />}
+                        </div>
                     ) : !event.registration_enabled ? (
                         <p className="text-ink-muted">
                             {t('events.rsvp.closed_note')}
                         </p>
                     ) : null}
                 </div>
-
-                {event.cfp.enabled && (
-                    <Surface className="mt-8 p-5 sm:p-6">
-                        <Eyebrow>{t('cfp.title')}</Eyebrow>
-                        {event.cfp.accepting ? (
-                            <>
-                                <p className="text-ink-muted mt-3 text-[15px] leading-7">
-                                    {event.cfp.closes_at
-                                        ? t('events.cfp.open_until', {
-                                              date: event.cfp.closes_at,
-                                          })
-                                        : t('events.cfp.open')}
-                                </p>
-                                <div className={`${actionRowClass} mt-4`}>
-                                    <Button href={`/events/${event.slug}/cfp`}>
-                                        {t('cfp.submit')}
-                                    </Button>
-                                </div>
-                                {profileIncomplete && <ProfileHint />}
-                            </>
-                        ) : (
-                            <p className="text-ink-muted mt-3 text-[15px] leading-7">
-                                {event.cfp.pending && event.cfp.opens_at
-                                    ? t('events.cfp.opens_on', {
-                                          date: event.cfp.opens_at,
-                                      })
-                                    : t('events.cfp.closed')}
-                            </p>
-                        )}
-                    </Surface>
-                )}
 
                 {event.description && (
                     <p className="text-ink-muted mt-8 text-[15px] leading-7 whitespace-pre-wrap">
