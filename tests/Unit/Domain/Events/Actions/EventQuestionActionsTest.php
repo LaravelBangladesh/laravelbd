@@ -167,15 +167,15 @@ test('duplicate multiple choice values are collapsed', function () {
 });
 
 test('an answer model exposes scalar values as a list', function () {
-    $answer = EventQuestion::factory()->create();
-    $registration = EventRegistration::factory()->create(['event_id' => $answer->event_id]);
+    $question = EventQuestion::factory()->create();
+    $registration = EventRegistration::factory()->create(['event_id' => $question->event_id]);
     $row = $registration->answers()->create([
-        'event_question_id' => $answer->id,
+        'question' => $question->snapshot(),
         'value' => 'Cefalo',
     ]);
 
     expect($row->values())->toBe(['Cefalo'])
-        ->and($row->question?->is($answer))->toBeTrue()
+        ->and($row->fresh()?->question)->toBe($question->snapshot())
         ->and($row->registration?->is($registration))->toBeTrue();
 });
 

@@ -39,18 +39,12 @@ final class RegisterForEvent
         return DB::transaction(function () use ($event, $user, $answers) {
             Event::query()->whereKey($event->id)->lockForUpdate()->first();
 
-            $values = QuestionAnswers::validate(
-                $event->questions()->get()
-                    ->map(fn (EventQuestion $question) => [
-                        'id' => $question->id,
-                        'kind' => $question->kind->value,
-                        'options' => $question->options,
-                        'required' => $question->required,
-                    ])
-                    ->values()
-                    ->all(),
-                $answers,
-            );
+            $questions = $event->questions()->get()
+                ->map(fn (EventQuestion $question) => $question->snapshot())
+                ->values()
+                ->all();
+
+            $values = QuestionAnswers::validate($questions, $answers);
 
             $existing = EventRegistration::query()
                 ->where('event_id', $event->id)
@@ -78,7 +72,7 @@ final class RegisterForEvent
                 ])->save();
 
                 $existing->answers()->delete();
-                $this->storeAnswers($existing, $values);
+                $this->storeAnswers($existing, $questions, $values);
 
                 return $existing;
             }
@@ -90,22 +84,28 @@ final class RegisterForEvent
                 'registered_at' => now(),
             ]);
 
-            $this->storeAnswers($registration, $values);
+            $this->storeAnswers($registration, $questions, $values);
 
             return $registration;
         });
     }
 
     /**
+     * Snapshot each answered question so later edits to the event's questions
+     * never change what the attendee was asked.
+     *
+     * @param  array<int, array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool}>  $questions
      * @param  array<string, string|list<string>>  $values
      */
-    private function storeAnswers(EventRegistration $registration, array $values): void
+    private function storeAnswers(EventRegistration $registration, array $questions, array $values): void
     {
-        foreach ($values as $questionId => $value) {
-            $registration->answers()->create([
-                'event_question_id' => $questionId,
-                'value' => $value,
-            ]);
+        foreach ($questions as $question) {
+            if (isset($values[$question['id']])) {
+                $registration->answers()->create([
+                    'question' => $question,
+                    'value' => $values[$question['id']],
+                ]);
+            }
         }
     }
 }

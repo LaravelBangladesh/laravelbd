@@ -12,7 +12,7 @@ function answeringMember(): User
     return User::factory()->withCompleteProfile()->create();
 }
 
-test('the show page exposes the questions', function () {
+test('the registration page exposes the questions', function () {
     $event = Event::factory()->published()->create();
     $question = EventQuestion::factory()->singleChoice()->create([
         'event_id' => $event->id,
@@ -20,14 +20,15 @@ test('the show page exposes the questions', function () {
         'help_en' => 'Pick one.',
     ]);
 
-    $this->get(route('events.show', $event))
+    $this->actingAs(answeringMember())
+        ->get(route('events.register.create', $event))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('event.questions', 1)
-            ->where('event.questions.0.id', $question->id)
-            ->where('event.questions.0.label', 'T-shirt size')
-            ->where('event.questions.0.help', 'Pick one.')
-            ->where('event.questions.0.options', ['S', 'M', 'L']));
+            ->has('questions', 1)
+            ->where('questions.0.id', $question->id)
+            ->where('questions.0.label', 'T-shirt size')
+            ->where('questions.0.help', 'Pick one.')
+            ->where('questions.0.options', ['S', 'M', 'L']));
 });
 
 test('registration without questions is unchanged', function () {
@@ -49,7 +50,9 @@ test('a missing required answer fails and stores no registration', function () {
     $user = answeringMember();
 
     $this->actingAs($user)
+        ->from(route('events.register.create', $event))
         ->post(route('events.rsvp.store', $event), ['answers' => [$question->id => '  ']])
+        ->assertRedirect(route('events.register.create', $event))
         ->assertSessionHasErrors("answers.{$question->id}");
 
     expect(EventRegistration::query()->count())->toBe(0);
@@ -88,13 +91,45 @@ test('answers are stored for every kind', function () {
         ->assertSessionHasNoErrors();
 
     $registration = EventRegistration::query()->where('user_id', $user->id)->firstOrFail();
-    $answers = $registration->answers()->get()->keyBy('event_question_id');
+    $answers = $registration->answers()->get()->keyBy(fn ($answer) => $answer->question['id']);
 
     expect($answers)->toHaveCount(4)
         ->and($answers[$short->id]->value)->toBe('Engineer at Cefalo')
         ->and($answers[$long->id]->value)->toBe('Looking forward to it.')
         ->and($answers[$single->id]->value)->toBe('M')
-        ->and($answers[$multi->id]->value)->toBe(['Testing', 'Queues']);
+        ->and($answers[$multi->id]->value)->toBe(['Testing', 'Queues'])
+        ->and($answers[$single->id]->question)->toBe([
+            'id' => $single->id,
+            'kind' => 'single_choice',
+            'label_en' => $single->label_en,
+            'label_bn' => $single->label_bn,
+            'help_en' => $single->help_en,
+            'help_bn' => $single->help_bn,
+            'options' => ['S', 'M', 'L'],
+            'required' => false,
+        ]);
+});
+
+test('editing or deleting a question keeps the recorded answers', function () {
+    $event = Event::factory()->published()->create();
+    $kept = EventQuestion::factory()->create(['event_id' => $event->id, 'label_en' => 'Company']);
+    $dropped = EventQuestion::factory()->create(['event_id' => $event->id, 'label_en' => 'Role']);
+    $user = answeringMember();
+
+    $this->actingAs($user)->post(route('events.rsvp.store', $event), [
+        'answers' => [$kept->id => 'Cefalo', $dropped->id => 'Engineer'],
+    ]);
+
+    $kept->update(['label_en' => 'Employer']);
+    $dropped->delete();
+
+    $answers = EventRegistration::query()->where('user_id', $user->id)->firstOrFail()
+        ->answers()->get()->keyBy(fn ($answer) => $answer->question['id']);
+
+    expect($answers)->toHaveCount(2)
+        ->and($answers[$kept->id]->question['label_en'])->toBe('Company')
+        ->and($answers[$dropped->id]->question['label_en'])->toBe('Role')
+        ->and($answers[$dropped->id]->value)->toBe('Engineer');
 });
 
 test('a blank optional answer is not stored', function () {

@@ -59,7 +59,7 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers.question']);
+        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers']);
 
         return Inertia::render('admin/events/manage', [
             'event' => EventPresenter::admin($event),
@@ -74,7 +74,7 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers.question']);
+        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers']);
 
         return Inertia::render('admin/events/edit', [
             'event' => EventPresenter::admin($event),

@@ -41,6 +41,9 @@ Route::get('events/{event:slug}/cfp', [EventProposalController::class, 'create']
 Route::post('events/{event:slug}/cfp', [EventProposalController::class, 'store'])
     ->middleware(['auth', 'throttle:10,1'])
     ->name('events.cfp.store');
+Route::get('events/{event:slug}/register', [EventRsvpController::class, 'create'])
+    ->middleware('auth')
+    ->name('events.register.create');
 Route::post('events/{event:slug}/rsvp', [EventRsvpController::class, 'store'])
     ->middleware(['auth', 'throttle:10,1'])
     ->name('events.rsvp.store');

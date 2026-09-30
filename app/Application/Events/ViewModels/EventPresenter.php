@@ -83,14 +83,6 @@ class EventPresenter
             'is_full' => $event->isFull(),
             'can_rsvp' => $event->acceptsRegistrations(),
             'registration_enabled' => $event->registration_enabled,
-            'questions' => $event->questions->map(fn (EventQuestion $question) => [
-                'id' => $question->id,
-                'kind' => $question->kind->value,
-                'label' => $question->localized('label'),
-                'help' => $question->localized('help'),
-                'options' => $question->optionList(),
-                'required' => $question->required,
-            ])->values()->all(),
             'cfp' => [
                 'enabled' => $event->cfp_enabled,
                 'accepting' => $event->isAcceptingProposals(),
@@ -243,14 +235,31 @@ class EventPresenter
                     'status_label' => $registration->status->label(),
                     'answers' => $registration->answers
                         ->map(fn (EventRegistrationAnswer $answer) => [
-                            'question_id' => $answer->event_question_id,
-                            'label' => $answer->question?->localized('label') ?? '',
+                            'question_id' => $answer->question['id'],
+                            'label' => Localized::pick($answer->question, 'label'),
                             'value' => implode(', ', $answer->values()),
                         ])
                         ->values()
                         ->all(),
                 ])->values()->all(),
         ];
+    }
+
+    /**
+     * The event's registration questions, localized for the public form.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function registrationQuestions(Event $event): array
+    {
+        return $event->questions->map(fn (EventQuestion $question) => [
+            'id' => $question->id,
+            'kind' => $question->kind->value,
+            'label' => $question->localized('label'),
+            'help' => $question->localized('help'),
+            'options' => $question->optionList(),
+            'required' => $question->required,
+        ])->values()->all();
     }
 
     /**

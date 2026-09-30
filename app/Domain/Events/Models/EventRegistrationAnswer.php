@@ -13,12 +13,12 @@ use Illuminate\Support\Carbon;
 /**
  * @property string $id
  * @property string $event_registration_id
- * @property string $event_question_id
+ * @property array{id: string, kind: string, label_en: string, label_bn: string|null, help_en: string|null, help_bn: string|null, options: list<string>|null, required: bool} $question
  * @property string|list<string> $value
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['event_registration_id', 'event_question_id', 'value'])]
+#[Fillable(['event_registration_id', 'question', 'value'])]
 class EventRegistrationAnswer extends Model
 {
     /** @use HasFactory<EventRegistrationAnswerFactory> */
@@ -30,6 +30,7 @@ class EventRegistrationAnswer extends Model
     protected function casts(): array
     {
         return [
+            'question' => 'array',
             'value' => 'array',
         ];
     }
@@ -40,14 +41,6 @@ class EventRegistrationAnswer extends Model
     public function registration(): BelongsTo
     {
         return $this->belongsTo(EventRegistration::class, 'event_registration_id');
-    }
-
-    /**
-     * @return BelongsTo<EventQuestion, $this>
-     */
-    public function question(): BelongsTo
-    {
-        return $this->belongsTo(EventQuestion::class, 'event_question_id');
     }
 
     /**

@@ -81,6 +81,25 @@ describe('QuestionField', () => {
         ).not.toHaveAttribute('aria-describedby');
     });
 
+    it('links a long text answer to its help', () => {
+        render(
+            <QuestionField
+                question={{
+                    ...base,
+                    id: 'q5',
+                    kind: 'long_text',
+                    label: 'Notes',
+                    help: 'Anything else.',
+                }}
+            />,
+        );
+
+        expect(screen.getByLabelText('Notes')).toHaveAttribute(
+            'aria-describedby',
+            'question-q5-help',
+        );
+    });
+
     it('shows the server error for the question', () => {
         render(
             <QuestionField

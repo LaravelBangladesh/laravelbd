@@ -17,11 +17,24 @@ test('an incomplete profile is sent to the editor instead of registering', funct
         ->post(route('events.rsvp.store', $event))
         ->assertRedirect(route('account.directory.edit'))
         ->assertSessionHas('profile.return_to', [
-            'route' => 'events.show',
+            'route' => 'events.register.create',
             'slug' => $event->slug,
         ]);
 
     expect(EventRegistration::query()->count())->toBe(0);
+});
+
+test('an incomplete profile is sent to the editor instead of the registration form', function () {
+    $event = Event::factory()->published()->create();
+    $member = User::factory()->create();
+
+    $this->actingAs($member)
+        ->get(route('events.register.create', $event))
+        ->assertRedirect(route('account.directory.edit'))
+        ->assertSessionHas('profile.return_to', [
+            'route' => 'events.register.create',
+            'slug' => $event->slug,
+        ]);
 });
 
 test('the editor lists the missing fields and the pending destination', function () {
@@ -36,7 +49,7 @@ test('the editor lists the missing fields and the pending destination', function
         ->assertInertia(fn (Assert $page) => $page
             ->component('account/directory')
             ->where('missing', ['photo', 'title', 'company'])
-            ->where('return_to.label', __('profile.return_to.event')));
+            ->where('return_to.label', __('profile.return_to.register')));
 });
 
 test('the editor reports no pending destination by default', function () {
@@ -50,7 +63,7 @@ test('the editor reports no pending destination by default', function () {
             ->where('return_to', null));
 });
 
-test('saving a complete profile returns the member to the event', function () {
+test('saving a complete profile returns the member to the registration form', function () {
     Storage::fake('public');
 
     $event = Event::factory()->published()->create();
@@ -66,7 +79,7 @@ test('saving a complete profile returns the member to the event', function () {
             'company' => 'Analytical Co',
             'photo' => UploadedFile::fake()->image('ada.jpg'),
         ])
-        ->assertRedirect(route('events.show', $event))
+        ->assertRedirect(route('events.register.create', $event))
         ->assertSessionMissing('profile.return_to');
 });
 

@@ -74,7 +74,7 @@ class EventController extends Controller
     {
         $this->authorize('view', $event);
 
-        $event->load(['speakers', 'sessions.speakers', 'media', 'questions', 'registrations']);
+        $event->load(['speakers', 'sessions.speakers', 'media', 'registrations']);
 
         $detail = EventPresenter::detail($event, $request->user());
 

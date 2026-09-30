@@ -368,6 +368,8 @@ class DemoSeeder extends Seeder
      */
     private function answers(Event $event, EventRegistration $registration, string $title, string $company): void
     {
+        $registration->answers()->delete();
+
         foreach ($event->questions as $question) {
             $options = $question->optionList();
 
@@ -377,10 +379,10 @@ class DemoSeeder extends Seeder
                 default => $title.' at '.$company,
             };
 
-            $registration->answers()->updateOrCreate(
-                ['event_question_id' => $question->id],
-                ['value' => $value],
-            );
+            $registration->answers()->create([
+                'question' => $question->snapshot(),
+                'value' => $value,
+            ]);
         }
     }
 

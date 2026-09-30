@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Domain\Events\Models\EventQuestion;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventRegistrationAnswer;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,7 +23,16 @@ class EventRegistrationAnswerFactory extends Factory
     {
         return [
             'event_registration_id' => EventRegistration::factory(),
-            'event_question_id' => EventQuestion::factory(),
+            'question' => [
+                'id' => fake()->uuid(),
+                'kind' => 'short_text',
+                'label_en' => fake()->sentence(3),
+                'label_bn' => null,
+                'help_en' => null,
+                'help_bn' => null,
+                'options' => null,
+                'required' => false,
+            ],
             'value' => fake()->sentence(3),
         ];
     }
