@@ -23,7 +23,9 @@ const Page = (await import('@/pages/auth/login')).default;
 
 const translations = {
     'auth.login.title': 'Sign in',
-    'auth.login.description': 'We will email you a one time code.',
+    'auth.login.info.1': 'We email you a login code.',
+    'auth.login.info.2': 'New here? Same code.',
+    'auth.login.info.3': 'Have a passkey? Use it.',
     'auth.passkey': 'Use a passkey',
     'auth.passkey_loading': 'Waiting for your passkey',
     'auth.or_email': 'Or continue with email',
@@ -38,9 +40,8 @@ describe('Login', () => {
         expect(
             screen.getByRole('heading', { name: 'Sign in' }),
         ).toBeInTheDocument();
-        expect(
-            screen.getByText('We will email you a one time code.'),
-        ).toBeInTheDocument();
+        expect(screen.getAllByRole('listitem')).toHaveLength(3);
+        expect(screen.getByText('New here? Same code.')).toBeInTheDocument();
         expect(
             screen.getByRole('button', { name: 'Use a passkey' }),
         ).toBeInTheDocument();
