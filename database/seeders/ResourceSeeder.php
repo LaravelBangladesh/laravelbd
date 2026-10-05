@@ -6,7 +6,6 @@ use App\Domain\Content\Enums\ResourceKind;
 use App\Domain\Content\Enums\ResourceStatus;
 use App\Domain\Content\Models\Resource;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -16,7 +15,6 @@ class ResourceSeeder extends Seeder
     {
         $admin = User::query()->where('role', 'admin')->first();
         $event = Event::query()->where('slug', 'april-laravel-meetup')->first();
-        $speaker = Speaker::query()->where('slug', 'sumon-selim')->first();
 
         Resource::query()->updateOrCreate(
             ['slug' => 'building-community-products'],
@@ -28,7 +26,7 @@ class ResourceSeeder extends Seeder
                 'excerpt_en' => 'The opening talk from the Laravel Bangladesh meetup.',
                 'embed_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                 'event_id' => $event?->id,
-                'speaker_id' => $speaker?->id,
+                'speaker_id' => $admin?->id,
                 'published_at' => now(),
                 'created_by' => $admin?->id,
             ],

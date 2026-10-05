@@ -3,6 +3,7 @@
 namespace App\Domain\Events\Models;
 
 use App\Domain\Events\Enums\SessionKind;
+use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Concerns\HasUuidPrimaryKey;
 use App\Domain\Shared\Concerns\LocalizesContent;
 use Database\Factories\EventSessionFactory;
@@ -71,11 +72,11 @@ class EventSession extends Model
     }
 
     /**
-     * @return BelongsToMany<Speaker, $this, SpeakerAssignment>
+     * @return BelongsToMany<User, $this, SpeakerAssignment>
      */
     public function speakers(): BelongsToMany
     {
-        return $this->belongsToMany(Speaker::class, 'session_speaker', 'session_id', 'speaker_id')
+        return $this->belongsToMany(User::class, 'session_speaker', 'session_id', 'user_id')
             ->using(SpeakerAssignment::class)
             ->withPivot(['role', 'sort_order'])
             ->withTimestamps()

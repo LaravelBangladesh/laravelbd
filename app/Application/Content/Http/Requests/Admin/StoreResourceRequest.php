@@ -43,7 +43,7 @@ class StoreResourceRequest extends FormRequest
                 new YouTubeUrl,
             ],
             'event_id' => ['nullable', 'uuid', 'exists:events,id'],
-            'speaker_id' => ['nullable', 'uuid', 'exists:speakers,id'],
+            'speaker_id' => ['nullable', 'uuid', 'exists:users,id'],
         ];
     }
 }

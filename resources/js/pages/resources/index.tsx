@@ -23,7 +23,7 @@ export type ResourceCardData = {
     kind: string;
     kind_label: string;
     event: { slug: string; title: string } | null;
-    speaker: { name: string } | null;
+    speaker: { name: string; directory_url: string | null } | null;
 };
 
 export default function ResourcesIndex({
@@ -97,7 +97,19 @@ export default function ResourcesIndex({
                                     )}
                                     {resource.speaker && (
                                         <p className="text-ink-muted mt-3 text-sm">
-                                            {resource.speaker.name}
+                                            {resource.speaker.directory_url ? (
+                                                <Link
+                                                    href={
+                                                        resource.speaker
+                                                            .directory_url
+                                                    }
+                                                    className="hover:text-brand-red"
+                                                >
+                                                    {resource.speaker.name}
+                                                </Link>
+                                            ) : (
+                                                resource.speaker.name
+                                            )}
                                         </p>
                                     )}
                                     <Link

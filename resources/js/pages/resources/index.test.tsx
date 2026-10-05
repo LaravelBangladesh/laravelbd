@@ -31,7 +31,7 @@ const resource: ResourceCardData = {
     kind: 'talk',
     kind_label: 'Talk',
     event: { slug: 'laracon-dhaka', title: 'Laracon Dhaka' },
-    speaker: { name: 'Ada Lovelace' },
+    speaker: { name: 'Ada Lovelace', directory_url: null },
 };
 
 describe('ResourcesIndex', () => {
@@ -73,6 +73,30 @@ describe('ResourcesIndex', () => {
         expect(screen.getByRole('link', { name: 'Talk' })).toHaveClass(
             'bg-brand-green',
         );
+    });
+
+    it('links a listed speaker to their directory profile', () => {
+        renderPage(
+            <Page
+                json_ld={[]}
+                resources={[
+                    {
+                        ...resource,
+                        speaker: {
+                            name: 'Ada Lovelace',
+                            directory_url: '/directory/ada-lovelace',
+                        },
+                    },
+                ]}
+                kind={null}
+                kinds={kinds}
+            />,
+            { translations },
+        );
+
+        expect(
+            screen.getByRole('link', { name: 'Ada Lovelace' }),
+        ).toHaveAttribute('href', '/directory/ada-lovelace');
     });
 
     it('omits the excerpt and speaker when they are missing', () => {

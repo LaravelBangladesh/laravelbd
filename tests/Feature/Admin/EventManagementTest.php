@@ -6,7 +6,6 @@ use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventMedium;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +43,7 @@ test('staff can create an event', function () {
 test('staff can open event management', function () {
     $event = Event::factory()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $moderator = User::factory()->moderator()->create();
+    $moderator = User::factory()->moderator()->create(['name' => 'Ada Lovelace', 'email' => 'ada@example.com']);
 
     $this->actingAs($moderator)
         ->get(route('admin.events.show', $event))
@@ -54,6 +53,7 @@ test('staff can open event management', function () {
             ->where('event.id', $event->id)
             ->has('event.sessions', 1)
             ->where('event.sessions.0.id', $session->id)
+            ->where('availableSpeakers.0', ['value' => $moderator->id, 'label' => 'Ada Lovelace — ada@example.com'])
             ->has('event.speakers')
             ->has('event.attendees'));
 
@@ -234,7 +234,7 @@ test('staff can delete event media', function () {
 
 test('staff can attach a speaker and session', function () {
     $event = Event::factory()->create();
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
@@ -259,7 +259,7 @@ test('staff can attach a speaker and session', function () {
 
 test('staff can create a session with an existing speaker', function () {
     $event = Event::factory()->create();
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
@@ -283,7 +283,7 @@ test('staff can create a session with an existing speaker', function () {
         ->and($event->speakers()->first()?->pivot->role)->toBe('host');
 });
 
-test('staff can create a session with a new speaker', function () {
+test('staff can create a session with a new guest speaker', function () {
     $event = Event::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
@@ -295,22 +295,55 @@ test('staff can create a session with a new speaker', function () {
             'ends_at' => '2026-10-15T19:30',
             'speaker_source' => 'new',
             'speaker_name' => 'Ada Lovelace',
+            'speaker_email' => 'ada@example.com',
             'speaker_title' => 'Mathematician',
             'speaker_company' => 'Analytical Engine',
             'speaker_role' => 'speaker',
         ])
         ->assertRedirect();
 
-    $speaker = Speaker::query()->where('name', 'Ada Lovelace')->first();
+    $speaker = User::query()->where('email', 'ada@example.com')->first();
     $session = $event->sessions()->first();
 
     expect($speaker)->not->toBeNull()
+        ->and($speaker?->name)->toBe('Ada Lovelace')
         ->and($speaker?->slug)->toBe('ada-lovelace')
         ->and($speaker?->title)->toBe('Mathematician')
         ->and($speaker?->company)->toBe('Analytical Engine')
+        ->and($speaker?->email_verified_at)->toBeNull()
         ->and($session)->not->toBeNull()
         ->and($session?->speakers()->whereKey($speaker)->exists())->toBeTrue()
         ->and($event->speakers()->whereKey($speaker)->exists())->toBeTrue();
+});
+
+test('a new session speaker needs an email', function () {
+    $event = Event::factory()->create();
+    $moderator = User::factory()->moderator()->create();
+
+    $this->actingAs($moderator)
+        ->post(route('admin.events.sessions.store', $event), [
+            'title_en' => 'Keynote',
+            'kind' => 'talk',
+            'starts_at' => '2026-10-15T18:30',
+            'ends_at' => '2026-10-15T19:30',
+            'speaker_source' => 'new',
+            'speaker_name' => 'Ada Lovelace',
+            'speaker_email' => 'not-an-email',
+        ])
+        ->assertSessionHasErrors('speaker_email');
+
+    $this->actingAs($moderator)
+        ->post(route('admin.events.sessions.store', $event), [
+            'title_en' => 'Keynote',
+            'kind' => 'talk',
+            'starts_at' => '2026-10-15T18:30',
+            'ends_at' => '2026-10-15T19:30',
+            'speaker_source' => 'new',
+            'speaker_name' => 'Ada Lovelace',
+        ])
+        ->assertSessionHasErrors('speaker_email');
+
+    expect($event->sessions()->count())->toBe(0);
 });
 
 test('staff can add a new speaker to an existing session', function () {
@@ -322,21 +355,41 @@ test('staff can add a new speaker to an existing session', function () {
         ->post(route('admin.events.sessions.speakers.store', [$event, $session]), [
             'speaker_source' => 'new',
             'speaker_name' => 'Grace Hopper',
+            'speaker_email' => 'grace@example.com',
             'speaker_role' => 'speaker',
         ])
         ->assertRedirect();
 
-    $speaker = Speaker::query()->where('name', 'Grace Hopper')->first();
+    $speaker = User::query()->where('email', 'grace@example.com')->first();
 
     expect($speaker)->not->toBeNull()
         ->and($session->speakers()->whereKey($speaker)->exists())->toBeTrue()
         ->and($event->speakers()->whereKey($speaker)->exists())->toBeTrue();
 });
 
+test('a new session speaker with a known email reuses that user', function () {
+    $event = Event::factory()->create();
+    $session = EventSession::factory()->create(['event_id' => $event->id]);
+    $existing = User::factory()->create(['email' => 'grace@example.com']);
+    $moderator = User::factory()->moderator()->create();
+
+    $this->actingAs($moderator)
+        ->post(route('admin.events.sessions.speakers.store', [$event, $session]), [
+            'speaker_source' => 'new',
+            'speaker_name' => 'Grace Hopper',
+            'speaker_email' => 'grace@example.com',
+            'speaker_role' => 'speaker',
+        ])
+        ->assertRedirect();
+
+    expect(User::query()->where('email', 'grace@example.com')->count())->toBe(1)
+        ->and($session->speakers()->whereKey($existing)->exists())->toBeTrue();
+});
+
 test('deleting a session releases its speaker from the event roster', function () {
     $event = Event::factory()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
@@ -359,7 +412,7 @@ test('detaching a session speaker leaves them on the event when another session 
     $event = Event::factory()->create();
     $first = EventSession::factory()->create(['event_id' => $event->id]);
     $second = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     foreach ([$first, $second] as $session) {
@@ -394,7 +447,7 @@ test('staff can delete an event', function () {
 
 test('staff can detach an event-level speaker', function () {
     $event = Event::factory()->create();
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     $event->speakers()->attach($speaker, ['role' => 'host']);

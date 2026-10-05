@@ -5,7 +5,6 @@ use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventMedium;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 
 function eventMarkdown(Event $event): string
@@ -39,7 +38,7 @@ test('an event describes everything a visitor sees', function () {
         'ends_at' => '2030-01-10 13:00:00',
         'room' => 'Hall A',
     ]);
-    $speaker = Speaker::factory()->create(['name' => 'Ada Lovelace', 'title' => 'Engineer', 'company' => 'Engines']);
+    $speaker = User::factory()->listedInDirectory()->create(['name' => 'Ada Lovelace', 'slug' => 'ada-lovelace', 'title' => 'Engineer', 'company' => 'Engines']);
     $session->speakers()->attach($speaker, ['role' => 'speaker']);
 
     EventMedium::factory()->video()->create(['event_id' => $event->id, 'caption_en' => 'Keynote']);
@@ -56,7 +55,7 @@ test('an event describes everything a visitor sees', function () {
         ->toContain('A day of Laravel talks.')
         ->toContain('Bring a laptop.')
         ->toContain("## Schedule\n\n- 18:30–19:00 · Talk: Queues in depth — Ada Lovelace (Hall A)\n  How jobs are retried.")
-        ->toContain("## Speakers\n\n- Ada Lovelace — Engineer, Engines")
+        ->toContain("## Speakers\n\n- [Ada Lovelace](".route('directory.show', 'ada-lovelace').') — Engineer, Engines')
         ->toContain("## Videos\n\n- [Keynote](https://www.youtube.com/watch?v=dQw4w9WgXcQ)");
 });
 
@@ -66,7 +65,7 @@ test('a bare event leaves out the sections it has nothing for', function () {
         'online_url' => null,
     ]);
     $session = EventSession::factory()->create(['event_id' => $event->id, 'title_en' => 'Lunch', 'room' => null, 'description_en' => null]);
-    $event->speakers()->attach(Speaker::factory()->create(['name' => 'Grace Hopper', 'title' => null, 'company' => null]), ['role' => 'host']);
+    $event->speakers()->attach(User::factory()->create(['name' => 'Grace Hopper', 'title' => null, 'company' => null]), ['role' => 'host']);
     EventMedium::factory()->video()->create(['event_id' => $event->id, 'caption_en' => null]);
 
     expect(eventMarkdown($event))

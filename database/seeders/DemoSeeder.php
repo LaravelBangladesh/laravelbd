@@ -15,7 +15,6 @@ use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Enums\DirectoryVisibility;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\User;
@@ -44,7 +43,10 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * @return array<string, Speaker>
+     * Demo speakers are members with a complete profile, keyed by a short
+     * name the event rows below refer to.
+     *
+     * @return array<string, User>
      */
     private function speakers(): array
     {
@@ -58,23 +60,16 @@ class DemoSeeder extends Seeder
 
         $speakers = [];
 
-        foreach ($rows as [$slug, $name, $title, $company, $bio]) {
-            $speakers[$slug] = Speaker::query()->updateOrCreate(
-                ['slug' => $slug],
-                [
-                    'name' => $name,
-                    'title' => $title,
-                    'company' => $company,
-                    'bio_en' => $bio,
-                ],
-            );
+        foreach ($rows as [$key, $name, $title, $company, $bio]) {
+            $speakers[$key] = $this->member(str_replace('-', '.', $key).'@example.com', $name, $title, $company);
+            $speakers[$key]->forceFill(['bio_en' => $bio])->save();
         }
 
         return $speakers;
     }
 
     /**
-     * @param  array<string, Speaker>  $speakers
+     * @param  array<string, User>  $speakers
      */
     private function pastEvents(?string $adminId, array $speakers): void
     {

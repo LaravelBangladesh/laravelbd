@@ -2,6 +2,7 @@
 
 namespace App\Application\Content\ViewModels;
 
+use App\Application\Events\ViewModels\EventPresenter;
 use App\Application\Shared\ViewModels\Breadcrumbs;
 use App\Application\Shared\ViewModels\MetaDescription;
 use App\Domain\Content\Enums\ResourceKind;
@@ -29,6 +30,7 @@ class ResourcePresenter
             ],
             'speaker' => $resource->speaker === null ? null : [
                 'name' => $resource->speaker->name,
+                'directory_url' => EventPresenter::speaker($resource->speaker)['directory_url'],
             ],
         ];
     }

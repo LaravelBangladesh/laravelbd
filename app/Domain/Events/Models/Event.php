@@ -118,11 +118,11 @@ class Event extends Model
     }
 
     /**
-     * @return BelongsToMany<Speaker, $this, SpeakerAssignment>
+     * @return BelongsToMany<User, $this, SpeakerAssignment>
      */
     public function speakers(): BelongsToMany
     {
-        return $this->belongsToMany(Speaker::class)
+        return $this->belongsToMany(User::class, 'event_speaker')
             ->using(SpeakerAssignment::class)
             ->withPivot(['role', 'sort_order'])
             ->withTimestamps()

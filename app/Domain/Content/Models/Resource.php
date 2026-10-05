@@ -6,7 +6,6 @@ use App\Domain\Content\Enums\ResourceKind;
 use App\Domain\Content\Enums\ResourceStatus;
 use App\Domain\Content\QueryBuilders\ResourceQueryBuilder;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Concerns\HasUuidPrimaryKey;
 use App\Domain\Shared\Concerns\LocalizesContent;
@@ -82,11 +81,11 @@ class Resource extends Model
     }
 
     /**
-     * @return BelongsTo<Speaker, $this>
+     * @return BelongsTo<User, $this>
      */
     public function speaker(): BelongsTo
     {
-        return $this->belongsTo(Speaker::class);
+        return $this->belongsTo(User::class, 'speaker_id');
     }
 
     /**

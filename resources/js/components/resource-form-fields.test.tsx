@@ -29,7 +29,9 @@ const statuses = [
 ];
 
 const events = [{ value: 'event-1', label: 'Laravel Day' }];
-const speakers = [{ value: 'speaker-1', label: 'Ada Lovelace' }];
+const speakers = [
+    { value: 'speaker-1', label: 'Ada Lovelace — ada@example.com' },
+];
 
 function field(name: string): HTMLInputElement {
     return document.querySelector(`[name="${name}"]`) as HTMLInputElement;
@@ -94,6 +96,9 @@ describe('ResourceFormFields', () => {
         expect(field('url')).toHaveValue('https://example.test');
         expect(field('event_id')).toHaveValue('event-1');
         expect(field('speaker_id')).toHaveValue('speaker-1');
+        expect(screen.getByRole('combobox')).toHaveValue(
+            'Ada Lovelace — ada@example.com',
+        );
     });
 
     it('falls back to empty strings for null values', () => {

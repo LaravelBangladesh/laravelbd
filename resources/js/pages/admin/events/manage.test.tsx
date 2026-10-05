@@ -82,7 +82,9 @@ const questionKinds = [
     { value: 'multiple_choice', label: 'Multiple choice' },
 ];
 
-const availableSpeakers = [{ id: 's1', name: 'Ada Lovelace' }];
+const availableSpeakers = [
+    { value: 's1', label: 'Ada Lovelace — ada@example.com' },
+];
 
 type ManageProps = ComponentProps<typeof AdminEventsManage>;
 type ManagedEvent = ManageProps['event'];

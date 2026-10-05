@@ -21,9 +21,10 @@ class AssignSessionSpeakerRequest extends FormRequest
     {
         return [
             'speaker_source' => ['required', Rule::in(['existing', 'new'])],
-            'speaker_id' => ['required_if:speaker_source,existing', 'nullable', 'uuid', 'exists:speakers,id'],
+            'speaker_id' => ['required_if:speaker_source,existing', 'nullable', 'uuid', 'exists:users,id'],
             'speaker_role' => ['required', Rule::enum(SpeakerRole::class)],
             'speaker_name' => ['required_if:speaker_source,new', 'nullable', 'string', 'max:255'],
+            'speaker_email' => ['required_if:speaker_source,new', 'nullable', 'string', 'email', 'max:255'],
             'speaker_title' => ['nullable', 'string', 'max:255'],
             'speaker_company' => ['nullable', 'string', 'max:255'],
             'speaker_photo' => ImageUpload::rules(),

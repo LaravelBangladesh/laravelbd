@@ -3,11 +3,10 @@ import { Description, Field, Label } from '@/components/catalyst/fieldset';
 import { FieldError } from '@/components/field-error';
 import { Input } from '@/components/catalyst/input';
 import { Select } from '@/components/catalyst/select';
+import { FieldCombobox } from '@/components/field-combobox';
 import { type FieldOption } from '@/components/field-select';
 import { ImageUploader } from '@/components/image-uploader';
 import { useTrans } from '@/lib/i18n';
-
-type SpeakerOption = { id: string; name: string };
 
 export function SessionSpeakerFields({
     speakers,
@@ -15,7 +14,7 @@ export function SessionSpeakerFields({
     allowNone = false,
     errors,
 }: {
-    speakers: SpeakerOption[];
+    speakers: FieldOption[];
     roles: FieldOption[];
     allowNone?: boolean;
     errors?: Record<string, string>;
@@ -66,13 +65,7 @@ export function SessionSpeakerFields({
             {source === 'existing' && canUseExisting && (
                 <Field>
                     <Label required>{t('admin.speakers')}</Label>
-                    <Select name="speaker_id" required>
-                        {speakers.map((speaker) => (
-                            <option key={speaker.id} value={speaker.id}>
-                                {speaker.name}
-                            </option>
-                        ))}
-                    </Select>
+                    <FieldCombobox name="speaker_id" options={speakers} />
                     <FieldError error={errors?.speaker_id} />
                 </Field>
             )}
@@ -82,6 +75,14 @@ export function SessionSpeakerFields({
                         <Label required>{t('admin.speaker_name')}</Label>
                         <Input name="speaker_name" required />
                         <FieldError error={errors?.speaker_name} />
+                    </Field>
+                    <Field>
+                        <Label required>{t('admin.speaker_email')}</Label>
+                        <Description>
+                            {t('admin.speaker_email_help')}
+                        </Description>
+                        <Input name="speaker_email" type="email" required />
+                        <FieldError error={errors?.speaker_email} />
                     </Field>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Field>

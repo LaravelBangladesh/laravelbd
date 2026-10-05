@@ -4,7 +4,6 @@ use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Content\Models\Resource;
 use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -78,9 +77,9 @@ test('the event list shows every event newest first', function () {
 });
 
 test('staff can open the resource create form with its options', function () {
-    $moderator = User::factory()->moderator()->create();
+    $moderator = User::factory()->moderator()->create(['name' => 'Zara Moderator']);
     $event = Event::factory()->create(['title_en' => 'April meetup']);
-    $speaker = Speaker::factory()->create(['name' => 'Ada Lovelace']);
+    $speaker = User::factory()->create(['name' => 'Ada Lovelace', 'email' => 'ada@example.com']);
 
     $this->actingAs($moderator)
         ->get(route('admin.resources.create'))
@@ -92,7 +91,7 @@ test('staff can open the resource create form with its options', function () {
             ->where('events.0.value', $event->id)
             ->where('events.0.label', 'April meetup')
             ->where('speakers.0.value', $speaker->id)
-            ->where('speakers.0.label', 'Ada Lovelace'));
+            ->where('speakers.0.label', 'Ada Lovelace — ada@example.com'));
 });
 
 test('staff can open the directory create form with its options', function () {

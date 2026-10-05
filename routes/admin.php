@@ -49,7 +49,7 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('events/{event}/cfp-questions/{question}', [CfpQuestionController::class, 'update'])->name('events.cfp-questions.update');
     Route::delete('events/{event}/cfp-questions/{question}', [CfpQuestionController::class, 'destroy'])->name('events.cfp-questions.destroy');
 
-    Route::resource('speakers', SpeakerController::class)->except(['show']);
+    Route::resource('speakers', SpeakerController::class)->only(['index', 'create', 'store']);
     Route::resource('resources', ResourceController::class)->except(['show']);
     Route::get('directory', DirectoryController::class)->name('directory.index');
     Route::resource('directory', CompanyController::class)

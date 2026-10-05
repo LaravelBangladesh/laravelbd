@@ -2,7 +2,6 @@
 
 use App\Domain\Content\Models\Resource;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -10,7 +9,7 @@ uses(RefreshDatabase::class);
 
 test('a resource links its event, speaker and creator', function () {
     $event = Event::factory()->create();
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $author = User::factory()->create();
 
     $resource = Resource::factory()->create([

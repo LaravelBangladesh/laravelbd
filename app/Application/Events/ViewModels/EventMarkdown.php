@@ -131,7 +131,9 @@ final class EventMarkdown
         $lines = array_map(function (array $speaker) {
             $role = implode(', ', array_filter([$speaker['title'], $speaker['company']]));
 
-            return "- {$speaker['name']}".($role === '' ? '' : " — {$role}");
+            $name = $speaker['directory_url'] ? "[{$speaker['name']}]({$speaker['directory_url']})" : $speaker['name'];
+
+            return "- {$name}".($role === '' ? '' : " — {$role}");
         }, $speakers);
 
         return "## Speakers\n\n".implode("\n", $lines);

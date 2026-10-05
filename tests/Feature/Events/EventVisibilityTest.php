@@ -3,7 +3,6 @@
 use App\Domain\Events\Enums\EventType;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -48,7 +47,7 @@ test('home lists upcoming published events', function () {
 test('published event lists speakers from sessions', function () {
     $event = Event::factory()->published()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create(['name' => 'Ada Lovelace']);
+    $speaker = User::factory()->create(['name' => 'Ada Lovelace']);
 
     $session->speakers()->attach($speaker, ['role' => 'speaker']);
 

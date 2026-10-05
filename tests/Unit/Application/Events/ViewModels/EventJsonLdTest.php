@@ -4,7 +4,8 @@ use App\Application\Events\ViewModels\EventJsonLd;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
+use App\Domain\Identity\ProfilePhoto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -115,13 +116,20 @@ test('a full event is offered as sold out', function () {
 
 test('speakers are published as performers', function () {
     $event = Event::factory()->published()->create();
-    $speaker = Speaker::factory()->create([
+    $speaker = User::factory()->create([
         'name' => 'Ada Lovelace',
         'title' => 'Principal Engineer',
         'photo_path' => null,
     ]);
 
-    $event->speakers()->attach($speaker, ['role' => 'speaker']);
+    $listed = User::factory()->listedInDirectory()->create([
+        'name' => 'Grace Hopper',
+        'slug' => 'grace-hopper',
+        'title' => null,
+    ]);
+
+    $event->speakers()->attach($speaker, ['role' => 'speaker', 'sort_order' => 1]);
+    $event->speakers()->attach($listed, ['role' => 'host', 'sort_order' => 2]);
 
     $schema = EventJsonLd::make($event->fresh()->load('speakers'), null);
 
@@ -130,6 +138,13 @@ test('speakers are published as performers', function () {
             '@type' => 'Person',
             'name' => 'Ada Lovelace',
             'jobTitle' => 'Principal Engineer',
+            'image' => ProfilePhoto::placeholder(),
+        ],
+        [
+            '@type' => 'Person',
+            'name' => 'Grace Hopper',
+            'image' => $listed->photoUrl(),
+            'url' => route('directory.show', 'grace-hopper'),
         ],
     ]);
 });

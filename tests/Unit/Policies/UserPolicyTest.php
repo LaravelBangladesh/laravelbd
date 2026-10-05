@@ -28,3 +28,14 @@ test('only staff can edit another member profile', function () {
         ->and($policy->update($member, $member))->toBeFalse()
         ->and($policy->update(User::factory()->moderator()->create(), $member))->toBeTrue();
 });
+
+test('only staff can list users and add guests', function () {
+    $policy = new UserPolicy;
+    $member = User::factory()->create();
+    $moderator = User::factory()->moderator()->create();
+
+    expect($policy->viewAny($member))->toBeFalse()
+        ->and($policy->create($member))->toBeFalse()
+        ->and($policy->viewAny($moderator))->toBeTrue()
+        ->and($policy->create($moderator))->toBeTrue();
+});

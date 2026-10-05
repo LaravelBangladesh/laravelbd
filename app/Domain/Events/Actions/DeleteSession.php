@@ -4,8 +4,8 @@ namespace App\Domain\Events\Actions;
 
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Events\SessionRoster;
+use App\Domain\Identity\Models\User;
 use Illuminate\Support\Facades\DB;
 
 final class DeleteSession
@@ -16,7 +16,7 @@ final class DeleteSession
             $speakers = $session->speakers()->get();
             $session->delete();
 
-            $speakers->each(fn (Speaker $speaker) => SessionRoster::releaseFromEvent($event, $speaker));
+            $speakers->each(fn (User $speaker) => SessionRoster::releaseFromEvent($event, $speaker));
         });
     }
 }

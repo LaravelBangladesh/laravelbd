@@ -7,7 +7,7 @@ use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Events\Actions\AttachEventSpeaker;
 use App\Domain\Events\Actions\DetachEventSpeaker;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use Illuminate\Http\RedirectResponse;
 
 class EventSpeakerController extends Controller
@@ -25,7 +25,7 @@ class EventSpeakerController extends Controller
         return back();
     }
 
-    public function destroy(Event $event, Speaker $speaker, DetachEventSpeaker $detach): RedirectResponse
+    public function destroy(Event $event, User $speaker, DetachEventSpeaker $detach): RedirectResponse
     {
         $this->authorize('update', $event);
 

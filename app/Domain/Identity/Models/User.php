@@ -3,7 +3,10 @@
 namespace App\Domain\Identity\Models;
 
 use App\Domain\Cfp\Models\TalkProposal;
+use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
+use App\Domain\Events\Models\EventSession;
+use App\Domain\Events\Models\SpeakerAssignment;
 use App\Domain\Identity\Enums\DirectoryVisibility;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\ProfilePhoto;
@@ -16,6 +19,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -50,6 +54,8 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read int|null $speaker_events_count Set when the query counts speakerEvents.
+ * @property-read SpeakerAssignment|null $pivot Set when loaded through an event or session roster.
  *
  * @method static UserQueryBuilder query()
  */
@@ -183,5 +189,29 @@ class User extends Authenticatable implements PasskeyUser
     public function talkProposals(): HasMany
     {
         return $this->hasMany(TalkProposal::class);
+    }
+
+    /**
+     * Events the user is billed on as a speaker, host or moderator.
+     *
+     * @return BelongsToMany<Event, $this, SpeakerAssignment>
+     */
+    public function speakerEvents(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_speaker')
+            ->using(SpeakerAssignment::class)
+            ->withPivot(['role', 'sort_order'])
+            ->withTimestamps();
+    }
+
+    /**
+     * @return BelongsToMany<EventSession, $this, SpeakerAssignment>
+     */
+    public function speakerSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(EventSession::class, 'session_speaker', 'user_id', 'session_id')
+            ->using(SpeakerAssignment::class)
+            ->withPivot(['role', 'sort_order'])
+            ->withTimestamps();
     }
 }

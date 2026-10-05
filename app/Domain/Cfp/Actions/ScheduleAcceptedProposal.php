@@ -7,9 +7,7 @@ use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Events\SessionRoster;
-use App\Domain\Shared\UniqueSlug;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +20,7 @@ final class ScheduleAcceptedProposal
 
             if ($session === null || $session->event_id !== $event->id) {
                 $session = $this->createSession($proposal, $event);
-                SessionRoster::attach($event, $session, $this->speakerFor($proposal), SpeakerRole::Speaker->value);
+                SessionRoster::attach($event, $session, $proposal->submitter()->firstOrFail(), SpeakerRole::Speaker->value);
             }
 
             $proposal->status = ProposalStatus::Accepted;
@@ -71,27 +69,5 @@ final class ScheduleAcceptedProposal
         }
 
         return [$startsAt, $endsAt];
-    }
-
-    private function speakerFor(TalkProposal $proposal): Speaker
-    {
-        $proposal->loadMissing('submitter');
-
-        $name = filled($proposal->submitter?->name)
-            ? $proposal->submitter->name
-            : 'Speaker';
-
-        $speaker = Speaker::query()->where('name', $name)->first();
-
-        if ($speaker !== null) {
-            return $speaker;
-        }
-
-        $speaker = new Speaker;
-        $speaker->name = $name;
-        $speaker->slug = UniqueSlug::make($name, 'speakers');
-        $speaker->save();
-
-        return $speaker;
     }
 }

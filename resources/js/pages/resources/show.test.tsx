@@ -21,10 +21,29 @@ const resource = {
     url: 'https://example.test/slides',
     embed: 'https://example.test/embed',
     event: { slug: 'laracon-dhaka', title: 'Laracon Dhaka' },
-    speaker: { name: 'Ada Lovelace' },
+    speaker: { name: 'Ada Lovelace', directory_url: null },
 };
 
 describe('ResourceShow', () => {
+    it('links a listed speaker to their directory profile', () => {
+        renderPage(
+            <Page
+                resource={{
+                    ...resource,
+                    speaker: {
+                        name: 'Ada Lovelace',
+                        directory_url: '/directory/ada-lovelace',
+                    },
+                }}
+            />,
+            { translations },
+        );
+
+        expect(
+            screen.getByRole('link', { name: 'Ada Lovelace' }),
+        ).toHaveAttribute('href', '/directory/ada-lovelace');
+    });
+
     it('renders every optional detail when present', () => {
         const { container } = renderPage(<Page resource={resource} />, {
             translations,

@@ -5,6 +5,7 @@ namespace App\Application\Content\Http\Controllers\Admin;
 use App\Application\Content\Http\Requests\Admin\StoreResourceRequest;
 use App\Application\Content\Http\Requests\Admin\UpdateResourceRequest;
 use App\Application\Content\ViewModels\ResourcePresenter;
+use App\Application\Identity\ViewModels\ProfilePresenter;
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Content\Actions\CreateResource;
 use App\Domain\Content\Actions\DeleteResource;
@@ -12,7 +13,6 @@ use App\Domain\Content\Actions\UpdateResource;
 use App\Domain\Content\Data\ResourceData;
 use App\Domain\Content\Models\Resource;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -100,14 +100,7 @@ class ResourceController extends Controller
                     'label' => $event->title_en,
                 ])
                 ->all(),
-            'speakers' => Speaker::query()
-                ->orderBy('name')
-                ->get(['id', 'name'])
-                ->map(fn (Speaker $speaker) => [
-                    'value' => $speaker->id,
-                    'label' => $speaker->name,
-                ])
-                ->all(),
+            'speakers' => ProfilePresenter::staffOptions(),
         ];
     }
 }

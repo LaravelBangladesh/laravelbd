@@ -57,4 +57,22 @@ class ProfilePresenter
             'label' => $visibility->label(),
         ], DirectoryVisibility::cases());
     }
+
+    /**
+     * Every user as a staff-only picker option. The email tells apart people
+     * who share a name, so it must never reach a public page.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function staffOptions(): array
+    {
+        return User::query()
+            ->alphabetical()
+            ->get(['id', 'name', 'email'])
+            ->map(fn (User $user) => [
+                'value' => $user->id,
+                'label' => $user->name.' — '.$user->email,
+            ])
+            ->all();
+    }
 }

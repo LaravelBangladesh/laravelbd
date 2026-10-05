@@ -6,7 +6,6 @@ use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\LoginChallenge;
 use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,7 +24,6 @@ test('application models persist uuid v7 primary keys', function (string $model)
     User::class,
     Event::class,
     EventSession::class,
-    Speaker::class,
     EventRegistration::class,
     Resource::class,
     Company::class,

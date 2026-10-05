@@ -2,13 +2,13 @@
 
 use App\Application\Content\ViewModels\ResourceJsonLd;
 use App\Domain\Content\Models\Resource;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('an article resource is published as an article', function () {
-    $speaker = Speaker::factory()->create(['name' => 'Ada Lovelace']);
+    $speaker = User::factory()->create(['name' => 'Ada Lovelace']);
 
     $resource = Resource::factory()->published()->create([
         'slug' => 'queues-in-depth',
