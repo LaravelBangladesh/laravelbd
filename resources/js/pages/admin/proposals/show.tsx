@@ -20,7 +20,11 @@ type ProposalDetail = {
     status_label: string;
     notes: string | null;
     answers: { id: string; label: string; value: string }[];
-    submitter: { name: string | null; email: string | null };
+    submitter: {
+        name: string | null;
+        email: string | null;
+        mobile_number: string | null;
+    };
     event_id: string | null;
     event: { slug: string; title: string } | null;
 };
@@ -49,6 +53,7 @@ export default function AdminProposalShow({
                 description={[
                     proposal.submitter.name,
                     proposal.submitter.email,
+                    proposal.submitter.mobile_number,
                     proposal.kind_label,
                 ]
                     .filter(Boolean)

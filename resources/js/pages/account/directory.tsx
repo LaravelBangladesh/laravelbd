@@ -1,15 +1,23 @@
+import { Form } from '@inertiajs/react';
 import { Seo } from '@/components/seo';
 import { Heading } from '@/components/catalyst/heading';
 import { Text } from '@/components/catalyst/text';
 import { pageHeaderClass, Button, Check, Surface } from '@/components/design';
 import {
-    DirectoryFormFields,
-    type DirectoryFormValues,
-} from '@/components/directory-form-fields';
+    ProfileFormFields,
+    type ProfileFormValues,
+} from '@/components/profile-form-fields';
+import { StatusChip } from '@/components/status-chip';
 import { ValidatedForm } from '@/components/validated-form';
 import { useTrans } from '@/lib/i18n';
 
-const PROFILE_FIELDS = ['name', 'photo', 'title', 'company'] as const;
+const PROFILE_FIELDS = [
+    'name',
+    'photo',
+    'title',
+    'company',
+    'mobile_number',
+] as const;
 
 type ProfileField = (typeof PROFILE_FIELDS)[number];
 
@@ -71,17 +79,72 @@ function ProfileCompleteness({
     );
 }
 
+/**
+ * Members ask to be listed and can hide again at any time; only staff list
+ * them, so there is never a button that lists directly.
+ */
+function DirectoryListing({ profile }: { profile: ProfileFormValues }) {
+    const t = useTrans();
+    const status = profile.directory_status ?? 'hidden';
+    const action =
+        status === 'hidden'
+            ? { visibility: 'pending', label: t('account.directory_request') }
+            : {
+                  visibility: 'hidden',
+                  label:
+                      status === 'pending'
+                          ? t('account.directory_withdraw')
+                          : t('account.directory_hide'),
+              };
+
+    return (
+        <Surface className="mt-8 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-ink text-lg font-medium tracking-tight">
+                    {t('account.directory_status')}
+                </h2>
+                {profile.directory_status_label && (
+                    <StatusChip
+                        status={status}
+                        label={profile.directory_status_label}
+                    />
+                )}
+            </div>
+            <p className="text-ink-muted mt-2 text-[15px] leading-7">
+                {t(`account.directory_status_${status}`)}
+            </p>
+            <Form
+                action="/account/directory/visibility"
+                method="patch"
+                className="mt-4"
+            >
+                <input
+                    type="hidden"
+                    name="visibility"
+                    value={action.visibility}
+                />
+                <Button
+                    type="submit"
+                    variant={status === 'hidden' ? 'primary' : 'outline'}
+                    className="w-full sm:w-auto"
+                >
+                    {action.label}
+                </Button>
+            </Form>
+        </Surface>
+    );
+}
+
 export default function AccountDirectory({
-    listing,
+    profile,
     missing = [],
     return_to: returnTo = null,
 }: {
-    listing: DirectoryFormValues;
+    profile: ProfileFormValues;
     missing?: ProfileField[];
     return_to?: { label: string } | null;
 }) {
     const t = useTrans();
-    const exists = Boolean(listing.id);
 
     return (
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
@@ -93,21 +156,14 @@ export default function AccountDirectory({
             <div className={`${pageHeaderClass} sm:items-start`}>
                 <div>
                     <p className="text-brand-green text-sm font-medium tracking-wide">
-                        {t('nav.directory')}
+                        {t('nav.account')}
                     </p>
                     <Heading>{t('account.directory')}</Heading>
                     <Text className="mt-2">{t('account.directory_lead')}</Text>
-                    {exists && listing.status_label && (
-                        <Text className="mt-2">
-                            {listing.is_published
-                                ? listing.status_label
-                                : t('account.directory_pending')}
-                        </Text>
-                    )}
                 </div>
-                {listing.slug && (
+                {profile.slug && (
                     <Button
-                        href={`/directory/${listing.slug}`}
+                        href={`/directory/${profile.slug}`}
                         variant="outline"
                         className="w-full sm:w-auto"
                     >
@@ -120,16 +176,13 @@ export default function AccountDirectory({
 
             <ValidatedForm
                 action="/account/directory"
-                method={exists ? 'patch' : 'post'}
+                method="patch"
                 encType="multipart/form-data"
                 className="mt-8 grid grid-cols-1 gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <DirectoryFormFields
-                            listing={listing}
-                            errors={errors}
-                        />
+                        <ProfileFormFields profile={profile} errors={errors} />
                         <Button
                             type="submit"
                             className="w-full sm:w-auto sm:justify-self-start"
@@ -140,6 +193,8 @@ export default function AccountDirectory({
                     </>
                 )}
             </ValidatedForm>
+
+            <DirectoryListing profile={profile} />
         </div>
     );
 }

@@ -11,17 +11,12 @@ const Page = (await import('@/pages/admin/directory/create')).default;
 
 const translations = {
     'admin.directory_title': 'Directory',
-    'admin.directory_create': 'Add listing',
+    'admin.directory_create': 'Add company',
     'admin.create': 'Create',
     'admin.cancel': 'Cancel',
     'auth.name': 'Name',
     'validation.required': 'This field is required.',
 };
-
-const kinds = [
-    { value: 'person', label: 'Person' },
-    { value: 'company', label: 'Company' },
-];
 
 const statuses = [
     { value: 'draft', label: 'Draft' },
@@ -30,12 +25,12 @@ const statuses = [
 
 describe('AdminDirectoryCreate', () => {
     it('renders the create form with its actions', () => {
-        renderPage(<Page kinds={kinds} statuses={statuses} />, {
+        renderPage(<Page statuses={statuses} />, {
             translations,
         });
 
         expect(
-            screen.getByRole('heading', { name: 'Add listing' }),
+            screen.getByRole('heading', { name: 'Add company' }),
         ).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Create' })).toBeEnabled();
         expect(screen.getByRole('link', { name: 'Cancel' })).toHaveAttribute(
@@ -47,7 +42,7 @@ describe('AdminDirectoryCreate', () => {
     it('reports a required name once the field is left empty', async () => {
         const user = userEvent.setup();
 
-        renderPage(<Page kinds={kinds} statuses={statuses} />, {
+        renderPage(<Page statuses={statuses} />, {
             translations,
         });
 

@@ -3,7 +3,7 @@
 use App\Domain\Cfp\Enums\ProposalStatus;
 use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
 use App\Domain\Identity\Models\User;
 
@@ -64,16 +64,14 @@ test('a blank event capacity is stored as null', function () {
     expect(Event::query()->where('title_en', 'Open house')->value('capacity'))->toBeNull();
 });
 
-test('blank directory listing fields are stored as null', function () {
+test('blank company fields are stored as null', function () {
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
         ->post(route('admin.directory.store'), [
-            'name' => 'Ada Lovelace',
-            'kind' => 'person',
+            'name' => 'Analytical Engines',
             'status' => 'draft',
             'title' => '',
-            'company' => '',
             'city' => '',
             'website' => '',
             'github' => '',
@@ -82,19 +80,18 @@ test('blank directory listing fields are stored as null', function () {
         ])
         ->assertRedirect(route('admin.directory.index'));
 
-    $listing = DirectoryListing::query()->where('name', 'Ada Lovelace')->first();
+    $company = Company::query()->where('name', 'Analytical Engines')->first();
 
-    expect($listing?->title)->toBeNull()
-        ->and($listing?->company)->toBeNull()
-        ->and($listing?->city)->toBeNull()
-        ->and($listing?->website)->toBeNull();
+    expect($company?->title)->toBeNull()
+        ->and($company?->city)->toBeNull()
+        ->and($company?->website)->toBeNull();
 });
 
-test('blank directory profile fields are stored as null for the acting member', function () {
+test('blank profile fields are stored as null for the acting member', function () {
     $member = User::factory()->create();
 
     $this->actingAs($member)
-        ->post(route('account.directory.store'), [
+        ->patch(route('account.directory.update'), [
             'name' => 'Grace Hopper',
             'title' => '',
             'company' => '',
@@ -103,12 +100,14 @@ test('blank directory profile fields are stored as null for the acting member', 
             'github' => '',
             'linkedin' => '',
             'x' => '',
+            'mobile_number' => '',
         ])
         ->assertRedirect();
 
-    $listing = DirectoryListing::query()->where('user_id', $member->id)->first();
+    $member->refresh();
 
-    expect($listing?->name)->toBe('Grace Hopper')
-        ->and($listing?->title)->toBeNull()
-        ->and($listing?->github)->toBeNull();
+    expect($member->name)->toBe('Grace Hopper')
+        ->and($member->title)->toBeNull()
+        ->and($member->github)->toBeNull()
+        ->and($member->mobile_number)->toBeNull();
 });

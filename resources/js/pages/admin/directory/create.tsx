@@ -1,16 +1,14 @@
 import { Seo } from '@/components/seo';
 import { AdminPageHeader } from '@/components/admin-page-header';
 import { actionRowClass, Button } from '@/components/design';
-import { DirectoryFormFields } from '@/components/directory-form-fields';
+import { CompanyFormFields } from '@/components/company-form-fields';
 import { type FieldOption } from '@/components/field-select';
 import { ValidatedForm } from '@/components/validated-form';
 import { useTrans } from '@/lib/i18n';
 
 export default function AdminDirectoryCreate({
-    kinds,
     statuses,
 }: {
-    kinds: FieldOption[];
     statuses: FieldOption[];
 }) {
     const t = useTrans();
@@ -34,8 +32,7 @@ export default function AdminDirectoryCreate({
             >
                 {({ processing, errors }) => (
                     <>
-                        <DirectoryFormFields
-                            kinds={kinds}
+                        <CompanyFormFields
                             statuses={statuses}
                             errors={errors}
                         />

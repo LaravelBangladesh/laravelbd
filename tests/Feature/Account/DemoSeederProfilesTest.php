@@ -13,5 +13,5 @@ test('the demo seeder gives members a complete profile and leaves one incomplete
 
     expect($complete?->hasCompleteProfile())->toBeTrue()
         ->and($incomplete?->hasCompleteProfile())->toBeFalse()
-        ->and($incomplete?->missingProfileFields())->toBe(['photo', 'title', 'company']);
+        ->and($incomplete?->missingProfileFields())->toBe(['photo', 'title', 'company', 'mobile_number']);
 });

@@ -13,13 +13,17 @@ import {
     TableRow,
 } from '@/components/catalyst/table';
 import { FieldSelect } from '@/components/field-select';
+import { StatusChip } from '@/components/status-chip';
 import { useTrans } from '@/lib/i18n';
 
 type UserRow = {
     id: string;
     name: string;
     email: string;
+    mobile_number: string | null;
     role: string;
+    directory_status: string;
+    directory_status_label: string;
     locale: string;
     created_at: string | null;
 };
@@ -61,6 +65,12 @@ export default function AdminUsers({ users, roles }: Props) {
                                 <TableHeader className="hidden md:table-cell">
                                     {t('auth.email')}
                                 </TableHeader>
+                                <TableHeader className="hidden lg:table-cell">
+                                    {t('admin.mobile_number')}
+                                </TableHeader>
+                                <TableHeader className="hidden md:table-cell">
+                                    {t('admin.directory_status')}
+                                </TableHeader>
                                 <TableHeader>{t('admin.role')}</TableHeader>
                             </TableRow>
                         </TableHead>
@@ -71,10 +81,24 @@ export default function AdminUsers({ users, roles }: Props) {
                                     className="hover:bg-canvas"
                                 >
                                     <TableCell className="font-medium">
-                                        {user.name}
+                                        <a
+                                            href={`/admin/users/${user.id}/edit`}
+                                            className="underline-offset-4 hover:underline"
+                                        >
+                                            {user.name}
+                                        </a>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">
                                         {user.email}
+                                    </TableCell>
+                                    <TableCell className="hidden lg:table-cell">
+                                        {user.mobile_number}
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <StatusChip
+                                            status={user.directory_status}
+                                            label={user.directory_status_label}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         {auth.user?.is_admin ? (

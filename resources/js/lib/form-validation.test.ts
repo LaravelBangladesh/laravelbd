@@ -55,6 +55,14 @@ describe('messageFor', () => {
         expect(messageFor(field(form, 'a'), t)).toBe('');
     });
 
+    it('reports the message a custom check set', () => {
+        const form = mount('<input name="a" value="017">');
+        const input = field<HTMLInputElement>(form, 'a');
+        input.setCustomValidity('Enter a valid mobile number.');
+
+        expect(messageFor(input, t)).toBe('Enter a valid mobile number.');
+    });
+
     it('reports a missing required value', () => {
         const form = mount('<input name="a" required value="">');
 

@@ -9,6 +9,7 @@ use App\Domain\Events\Enums\EventType;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Enums\SpeakerRole;
+use App\Domain\Identity\Enums\DirectoryVisibility;
 
 test('event types expose labels', function (EventType $type, string $key) {
     expect($type->label())->toBe(__($key));
@@ -91,4 +92,12 @@ test('event statuses expose labels', function (EventStatus $status, string $key)
     [EventStatus::Draft, 'events.status.draft'],
     [EventStatus::Published, 'events.status.published'],
     [EventStatus::Cancelled, 'events.status.cancelled'],
+]);
+
+test('directory visibilities expose labels', function (DirectoryVisibility $visibility, string $key) {
+    expect($visibility->label())->toBe(__($key));
+})->with([
+    [DirectoryVisibility::Hidden, 'directory.visibility.hidden'],
+    [DirectoryVisibility::Pending, 'directory.visibility.pending'],
+    [DirectoryVisibility::Listed, 'directory.visibility.listed'],
 ]);

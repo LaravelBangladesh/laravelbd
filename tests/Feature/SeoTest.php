@@ -1,8 +1,8 @@
 <?php
 
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
 use App\Domain\Events\Models\Event;
+use App\Domain\Identity\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('every page shares the canonical url, default image and site name', function () {
@@ -84,7 +84,7 @@ test('an event page carries its description and structured data', function () {
 });
 
 test('a directory page carries its description and structured data', function () {
-    $listing = DirectoryListing::factory()->published()->create([
+    $listing = User::factory()->listedInDirectory()->create([
         'slug' => 'ada-lovelace',
         'name' => 'Ada Lovelace',
         'bio_en' => 'Builds Laravel applications in Dhaka.',
@@ -101,7 +101,7 @@ test('a directory page carries its description and structured data', function ()
 });
 
 test('a listing without a bio still describes itself', function () {
-    $listing = DirectoryListing::factory()->published()->create([
+    $listing = User::factory()->listedInDirectory()->create([
         'name' => 'Ada Lovelace',
         'title' => 'Principal Engineer',
         'company' => 'Analytical Engines',

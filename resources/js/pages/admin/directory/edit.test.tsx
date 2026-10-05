@@ -10,7 +10,7 @@ const Page = (await import('@/pages/admin/directory/edit')).default;
 
 const translations = {
     'admin.directory_title': 'Directory',
-    'admin.directory_edit': 'Edit listing',
+    'admin.directory_edit': 'Edit company',
     'admin.view_public': 'View public page',
     'admin.save': 'Save',
     'admin.cancel': 'Cancel',
@@ -18,18 +18,12 @@ const translations = {
     'auth.name': 'Name',
 };
 
-const listing = {
-    id: 'listing-1',
-    slug: 'ada-lovelace',
-    name: 'Ada Lovelace',
-    kind: 'person',
+const company = {
+    id: 'company-1',
+    slug: 'analytical-engines',
+    name: 'Analytical Engines',
     status: 'published',
 };
-
-const kinds = [
-    { value: 'person', label: 'Person' },
-    { value: 'company', label: 'Company' },
-];
 
 const statuses = [
     { value: 'draft', label: 'Draft' },
@@ -37,30 +31,28 @@ const statuses = [
 ];
 
 describe('AdminDirectoryEdit', () => {
-    it('renders the listing name as the page description', () => {
-        renderPage(
-            <Page listing={listing} kinds={kinds} statuses={statuses} />,
-            { translations },
-        );
+    it('renders the company name as the page description', () => {
+        renderPage(<Page company={company} statuses={statuses} />, {
+            translations,
+        });
 
         expect(
-            screen.getByRole('heading', { name: 'Edit listing' }),
+            screen.getByRole('heading', { name: 'Edit company' }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
+        expect(screen.getByText('Analytical Engines')).toBeInTheDocument();
     });
 
     it('prefills the form and links to the public page', () => {
-        renderPage(
-            <Page listing={listing} kinds={kinds} statuses={statuses} />,
-            { translations },
-        );
+        renderPage(<Page company={company} statuses={statuses} />, {
+            translations,
+        });
 
         expect(screen.getByRole('textbox', { name: /Name/ })).toHaveValue(
-            'Ada Lovelace',
+            'Analytical Engines',
         );
         expect(
             screen.getByRole('link', { name: 'View public page' }),
-        ).toHaveAttribute('href', '/directory/ada-lovelace');
+        ).toHaveAttribute('href', '/directory/analytical-engines');
         expect(screen.getByRole('link', { name: 'Cancel' })).toHaveAttribute(
             'href',
             '/admin/directory',

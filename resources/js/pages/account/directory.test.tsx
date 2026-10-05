@@ -7,14 +7,20 @@ vi.mock('@inertiajs/react', async () =>
 );
 
 const Page = (await import('@/pages/account/directory')).default;
-type DirectoryFormValues =
-    import('@/components/directory-form-fields').DirectoryFormValues;
+type ProfileFormValues =
+    import('@/components/profile-form-fields').ProfileFormValues;
 
 const translations = {
-    'nav.directory': 'Directory',
-    'account.directory': 'Your listing',
+    'nav.account': 'Account',
+    'account.directory': 'Your profile',
     'account.directory_lead': 'Tell members who you are.',
-    'account.directory_pending': 'Awaiting review',
+    'account.directory_status': 'Directory listing',
+    'account.directory_status_hidden': 'You are not in the directory.',
+    'account.directory_status_pending': 'Waiting for staff.',
+    'account.directory_status_listed': 'You are listed.',
+    'account.directory_request': 'Ask to be listed',
+    'account.directory_withdraw': 'Withdraw request',
+    'account.directory_hide': 'Hide from directory',
     'account.save': 'Save',
     'admin.view_public': 'View public page',
     'auth.name': 'Name',
@@ -26,69 +32,111 @@ const translations = {
     'profile.field.photo': 'Profile photo',
     'profile.field.title': 'Designation',
     'profile.field.company': 'Company or institution',
+    'profile.field.mobile_number': 'Mobile number',
     'profile.field_done': 'Done',
     'profile.field_missing': 'Missing',
 };
 
-const listing: DirectoryFormValues = {
-    id: 'listing-1',
+const profile: ProfileFormValues = {
+    id: 'user-1',
     slug: 'ada-lovelace',
     name: 'Ada Lovelace',
-    status: 'published',
-    status_label: 'Published',
-    is_published: true,
+    mobile_number: '+8801712345678',
+    directory_status: 'listed',
+    directory_status_label: 'Listed',
+    is_listed: true,
 };
 
+function visibilityValue(): string | null {
+    return (
+        document.querySelector<HTMLInputElement>('input[name="visibility"]')
+            ?.value ?? null
+    );
+}
+
 describe('AccountDirectory', () => {
-    it('renders the published status and the public link', () => {
-        renderPage(<Page listing={listing} />, { translations });
+    it('renders the profile form with the public link', () => {
+        renderPage(<Page profile={profile} />, { translations });
 
         expect(
-            screen.getByRole('heading', { name: 'Your listing' }),
+            screen.getByRole('heading', { name: 'Your profile' }),
         ).toBeInTheDocument();
-        expect(screen.getByText('Published')).toBeInTheDocument();
         expect(
             screen.getByRole('link', { name: 'View public page' }),
         ).toHaveAttribute('href', '/directory/ada-lovelace');
+        expect(
+            document.querySelector('input[name="mobile_number"]'),
+        ).toHaveValue('01712-345678');
         expect(
             screen.getByRole('button', { name: 'Save' }),
         ).toBeInTheDocument();
     });
 
-    it('shows the pending copy while the listing waits for review', () => {
-        renderPage(<Page listing={{ ...listing, is_published: false }} />, {
+    it('hides the public link before the profile has a slug', () => {
+        renderPage(<Page profile={{ ...profile, slug: null }} />, {
             translations,
         });
-
-        expect(screen.getByText('Awaiting review')).toBeInTheDocument();
-        expect(screen.queryByText('Published')).not.toBeInTheDocument();
-    });
-
-    it('hides the status and the public link for a new listing', () => {
-        renderPage(<Page listing={{}} />, { translations });
 
         expect(
             screen.queryByRole('link', { name: 'View public page' }),
         ).not.toBeInTheDocument();
-        expect(screen.queryByText('Published')).not.toBeInTheDocument();
-        expect(screen.queryByText('Awaiting review')).not.toBeInTheDocument();
     });
 
-    it('keeps the status hidden when the server sends no label', () => {
-        renderPage(<Page listing={{ ...listing, status_label: undefined }} />, {
-            translations,
-        });
+    it('lets a listed member hide from the directory', () => {
+        renderPage(<Page profile={profile} />, { translations });
 
-        expect(screen.queryByText('Published')).not.toBeInTheDocument();
+        expect(screen.getByText('You are listed.')).toBeInTheDocument();
+        expect(screen.getByText('Listed')).toBeInTheDocument();
         expect(
-            screen.getByRole('link', { name: 'View public page' }),
+            screen.getByRole('button', { name: 'Hide from directory' }),
         ).toBeInTheDocument();
+        expect(visibilityValue()).toBe('hidden');
+    });
+
+    it('lets a pending member withdraw the request', () => {
+        renderPage(
+            <Page
+                profile={{
+                    ...profile,
+                    directory_status: 'pending',
+                    directory_status_label: 'Pending',
+                }}
+            />,
+            { translations },
+        );
+
+        expect(screen.getByText('Waiting for staff.')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Withdraw request' }),
+        ).toBeInTheDocument();
+        expect(visibilityValue()).toBe('hidden');
+    });
+
+    it('lets a hidden member ask to be listed', () => {
+        renderPage(
+            <Page
+                profile={{
+                    ...profile,
+                    directory_status: undefined,
+                    directory_status_label: undefined,
+                }}
+            />,
+            { translations },
+        );
+
+        expect(
+            screen.getByText('You are not in the directory.'),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Ask to be listed' }),
+        ).toBeInTheDocument();
+        expect(visibilityValue()).toBe('pending');
     });
 });
 
 describe('AccountDirectory profile completeness', () => {
     it('marks every item done when nothing is missing', () => {
-        renderPage(<Page listing={listing} missing={[]} />, { translations });
+        renderPage(<Page profile={profile} missing={[]} />, { translations });
 
         expect(
             screen.getByRole('heading', { name: 'Profile completeness' }),
@@ -96,7 +144,7 @@ describe('AccountDirectory profile completeness', () => {
         expect(
             screen.getByText('Add these before you register.'),
         ).toBeInTheDocument();
-        expect(screen.getAllByText('Done')).toHaveLength(4);
+        expect(screen.getAllByText('Done')).toHaveLength(5);
         expect(screen.queryByText('Missing')).not.toBeInTheDocument();
         expect(
             screen.queryByText('Same profile everywhere.'),
@@ -104,23 +152,23 @@ describe('AccountDirectory profile completeness', () => {
     });
 
     it('flags the fields the server reports as missing', () => {
-        renderPage(<Page listing={listing} missing={['photo', 'company']} />, {
-            translations,
-        });
+        renderPage(
+            <Page profile={profile} missing={['photo', 'mobile_number']} />,
+            { translations },
+        );
 
         expect(screen.getAllByText('Missing')).toHaveLength(2);
         expect(
             screen.getByText('Same profile everywhere.'),
         ).toBeInTheDocument();
-        expect(screen.getAllByText('Done')).toHaveLength(2);
+        expect(screen.getAllByText('Done')).toHaveLength(3);
         expect(screen.getByText('Profile photo')).toBeInTheDocument();
-        expect(screen.getByText('Company or institution')).toBeInTheDocument();
     });
 
     it('names the destination when a return is pending', () => {
         renderPage(
             <Page
-                listing={listing}
+                profile={profile}
                 missing={['title']}
                 return_to={{ label: 'the event' }}
             />,

@@ -2,7 +2,7 @@
 
 use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
@@ -42,16 +42,24 @@ test('the resource list shows each status label', function () {
 
 test('the directory list shows each status label', function () {
     $moderator = User::factory()->moderator()->create();
-    DirectoryListing::factory()->create(['name' => 'Ada Lovelace']);
+    Company::factory()->create(['name' => 'Zeta Labs']);
+    User::factory()->pendingInDirectory()->create(['name' => 'Ada Lovelace']);
+    User::factory()->listedInDirectory()->create(['name' => 'Grace Hopper']);
+    User::factory()->create(['name' => 'Hidden Member']);
 
     $this->actingAs($moderator)
         ->get(route('admin.directory.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/directory/index')
-            ->has('listings', 1)
+            ->has('listings', 3)
             ->where('listings.0.name', 'Ada Lovelace')
-            ->where('listings.0.status', 'draft'));
+            ->where('listings.0.kind', 'person')
+            ->where('listings.0.status', 'pending')
+            ->where('listings.1.status', 'listed')
+            ->where('listings.2.name', 'Zeta Labs')
+            ->where('listings.2.kind', 'company')
+            ->where('listings.2.status', 'draft'));
 });
 
 test('the event list shows every event newest first', function () {
@@ -95,7 +103,6 @@ test('staff can open the directory create form with its options', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/directory/create')
-            ->has('kinds')
             ->has('statuses'));
 });
 

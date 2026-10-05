@@ -3,8 +3,9 @@
 namespace App\Application\Shared\Http\Controllers;
 
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
+use App\Domain\Identity\Models\User;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -30,10 +31,10 @@ class SitemapController extends Controller
             );
         }
 
-        foreach (DirectoryListing::query()->published()->get() as $listing) {
+        foreach ([...User::query()->listedInDirectory()->get(), ...Company::query()->published()->get()] as $entry) {
             $urls[] = $this->url(
-                route('directory.show', $listing),
-                $listing->updated_at,
+                route('directory.show', (string) $entry->slug),
+                $entry->updated_at,
                 'monthly',
                 '0.6',
             );

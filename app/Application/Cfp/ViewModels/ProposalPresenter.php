@@ -50,6 +50,7 @@ class ProposalPresenter
             'submitter' => [
                 'name' => $proposal->submitter?->name,
                 'email' => $proposal->submitter?->email,
+                'mobile_number' => $proposal->submitter?->mobile_number,
             ],
         ];
     }

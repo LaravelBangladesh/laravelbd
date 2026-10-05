@@ -18,6 +18,7 @@ import { useTrans } from '@/lib/i18n';
 type ListingRow = {
     id: string;
     name: string;
+    kind: string;
     kind_label: string;
     city: string | null;
     status: string;
@@ -79,7 +80,11 @@ export default function AdminDirectoryIndex({
                             {listings.map((listing) => (
                                 <TableRow
                                     key={listing.id}
-                                    href={`/admin/directory/${listing.id}/edit`}
+                                    href={
+                                        listing.kind === 'company'
+                                            ? `/admin/directory/${listing.id}/edit`
+                                            : `/admin/users/${listing.id}/edit`
+                                    }
                                     className="hover:bg-canvas"
                                 >
                                     <TableCell className="font-medium">

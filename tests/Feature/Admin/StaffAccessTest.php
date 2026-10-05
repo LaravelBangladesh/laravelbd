@@ -1,7 +1,7 @@
 <?php
 
 use App\Domain\Cfp\Models\TalkProposal;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
@@ -81,8 +81,10 @@ test('the dashboard reports pending work and the next event', function () {
 
     TalkProposal::factory()->create(['title_en' => 'A pending talk']);
     TalkProposal::factory()->accepted()->create();
-    DirectoryListing::factory()->create();
-    DirectoryListing::factory()->published()->create();
+    Company::factory()->create();
+    Company::factory()->published()->create();
+    User::factory()->pendingInDirectory()->create();
+    User::factory()->listedInDirectory()->create();
 
     $this->actingAs($moderator)
         ->get(route('admin.dashboard'))
@@ -91,7 +93,7 @@ test('the dashboard reports pending work and the next event', function () {
             ->component('admin/dashboard')
             ->where('stats.upcoming_events', 2)
             ->where('stats.pending_proposals', 1)
-            ->where('stats.draft_listings', 1)
+            ->where('stats.draft_listings', 2)
             ->where('stats.next_event_registrations', 1)
             ->where('nextEvent.title', 'Next up')
             ->where('nextEvent.capacity', 50)

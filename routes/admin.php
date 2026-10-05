@@ -3,7 +3,8 @@
 use App\Application\Cfp\Http\Controllers\Admin\CfpQuestionController;
 use App\Application\Cfp\Http\Controllers\Admin\TalkProposalController;
 use App\Application\Content\Http\Controllers\Admin\ResourceController;
-use App\Application\Directory\Http\Controllers\Admin\DirectoryListingController;
+use App\Application\Directory\Http\Controllers\Admin\CompanyController;
+use App\Application\Directory\Http\Controllers\Admin\DirectoryController;
 use App\Application\Events\Http\Controllers\Admin\EventController;
 use App\Application\Events\Http\Controllers\Admin\EventMediaController;
 use App\Application\Events\Http\Controllers\Admin\EventQuestionController;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('users', [UserController::class, 'index'])->name('users.index');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::patch('users/{user}/role', UserRoleController::class)
         ->middleware('admin')
         ->name('users.role');
@@ -48,8 +51,9 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
 
     Route::resource('speakers', SpeakerController::class)->except(['show']);
     Route::resource('resources', ResourceController::class)->except(['show']);
-    Route::resource('directory', DirectoryListingController::class)
-        ->parameters(['directory' => 'listing'])
-        ->except(['show']);
+    Route::get('directory', DirectoryController::class)->name('directory.index');
+    Route::resource('directory', CompanyController::class)
+        ->parameters(['directory' => 'company'])
+        ->except(['index', 'show']);
     Route::resource('proposals', TalkProposalController::class)->only(['index', 'show', 'update']);
 });

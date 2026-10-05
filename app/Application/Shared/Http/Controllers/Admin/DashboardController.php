@@ -4,7 +4,7 @@ namespace App\Application\Shared\Http\Controllers\Admin;
 
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Cfp\Models\TalkProposal;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\User;
@@ -22,7 +22,7 @@ class DashboardController extends Controller
             'stats' => [
                 'upcoming_events' => Event::query()->published()->upcoming()->count(),
                 'pending_proposals' => TalkProposal::query()->pending()->count(),
-                'draft_listings' => DirectoryListing::query()->draft()->count(),
+                'draft_listings' => User::query()->pendingDirectory()->count() + Company::query()->draft()->count(),
                 'next_event_registrations' => $nextEvent?->registeredCount() ?? 0,
                 'members' => User::query()->where('role', UserRole::Member)->count(),
                 'staff' => User::query()->whereIn('role', [UserRole::Admin, UserRole::Moderator])->count(),

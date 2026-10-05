@@ -28,6 +28,7 @@ test('update profile saves the name and locale without an email change', functio
     expect($requested)->toBeFalse()
         ->and($user->fresh()?->name)->toBe('New Name')
         ->and($user->fresh()?->locale)->toBe('bn')
+        ->and($user->fresh()?->slug)->toBe('new-name')
         ->and($user->fresh()?->pending_email)->toBeNull();
 
     Mail::assertNothingQueued();

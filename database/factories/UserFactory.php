@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Identity\Enums\DirectoryVisibility;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -36,12 +36,30 @@ class UserFactory extends Factory
 
     public function withCompleteProfile(): static
     {
-        return $this->afterCreating(function (User $user) {
-            DirectoryListing::factory()->complete()->create([
-                'user_id' => $user->id,
-                'name' => $user->name,
-            ]);
-        });
+        return $this->state(fn (array $attributes) => [
+            'slug' => Str::slug((string) $attributes['name']).'-'.fake()->unique()->numerify('####'),
+            'title' => fake()->jobTitle(),
+            'company' => fake()->company(),
+            'city' => 'Dhaka',
+            'bio_en' => fake()->paragraph(),
+            'photo_path' => 'directory/'.fake()->uuid().'.jpg',
+            'mobile_number' => '+8801'.fake()->unique()->numerify('7########'),
+        ]);
+    }
+
+    public function pendingInDirectory(): static
+    {
+        return $this->withCompleteProfile()->state(fn (array $attributes) => [
+            'directory_status' => DirectoryVisibility::Pending,
+        ]);
+    }
+
+    public function listedInDirectory(): static
+    {
+        return $this->withCompleteProfile()->state(fn (array $attributes) => [
+            'directory_status' => DirectoryVisibility::Listed,
+            'directory_published_at' => now(),
+        ]);
     }
 
     public function unverified(): static
