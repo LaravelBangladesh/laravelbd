@@ -9,7 +9,6 @@ use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
 use App\Domain\Events\Enums\MediaKind;
 use App\Domain\Events\Enums\QuestionKind;
-use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
@@ -224,23 +223,35 @@ class EventPresenter
                 ...$question,
                 'kind_label' => QuestionKind::from($question['kind'])->label(),
             ], $event->cfp_questions ?? []),
-            'attendees' => $event->registrations
-                ->filter(fn (EventRegistration $registration) => $registration->status !== RegistrationStatus::Cancelled)
-                ->map(fn (EventRegistration $registration) => [
-                    'id' => $registration->id,
-                    'name' => $registration->user?->name,
-                    'email' => $registration->user?->email,
-                    'status' => $registration->status->value,
-                    'status_label' => $registration->status->label(),
-                    'answers' => $registration->answers
-                        ->map(fn (EventRegistrationAnswer $answer) => [
-                            'question_id' => $answer->question['id'],
-                            'label' => Localized::pick($answer->question, 'label'),
-                            'value' => implode(', ', $answer->values()),
-                        ])
-                        ->values()
-                        ->all(),
-                ])->values()->all(),
+        ];
+    }
+
+    /**
+     * A registration as staff see it. It carries the email and the private
+     * mobile number, so it only ever reaches admin pages. Load the user with
+     * trashed ones, so a deactivated attendee keeps their name here.
+     *
+     * @return array<string, mixed>
+     */
+    public static function attendee(EventRegistration $registration): array
+    {
+        return [
+            'id' => $registration->id,
+            'name' => $registration->user?->name,
+            'email' => $registration->user?->email,
+            'mobile_number' => $registration->user?->mobile_number,
+            'user_active' => $registration->user?->trashed() === false,
+            'status' => $registration->status->value,
+            'status_label' => $registration->status->label(),
+            'registered_at' => DhakaTime::display($registration->registered_at),
+            'answers' => $registration->answers
+                ->map(fn (EventRegistrationAnswer $answer) => [
+                    'question_id' => $answer->question['id'],
+                    'label' => Localized::pick($answer->question, 'label'),
+                    'value' => implode(', ', $answer->values()),
+                ])
+                ->values()
+                ->all(),
         ];
     }
 

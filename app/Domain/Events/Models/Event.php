@@ -204,6 +204,15 @@ class Event extends Model
         return $this->capacity !== null && $this->registeredCount() >= $this->capacity;
     }
 
+    /**
+     * Where a new or returning attendee lands: a free seat, or the waitlist
+     * once the event is full.
+     */
+    public function seatStatus(): RegistrationStatus
+    {
+        return $this->isFull() ? RegistrationStatus::Waitlisted : RegistrationStatus::Registered;
+    }
+
     public function registrationFor(?User $user): ?EventRegistration
     {
         if ($user === null) {

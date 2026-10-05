@@ -6,6 +6,7 @@ use App\Domain\Identity\Mail\LoginChallengeMail;
 use App\Domain\Identity\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Validation\ValidationException;
 
 final class RequestLoginChallenge
 {
@@ -13,7 +14,13 @@ final class RequestLoginChallenge
 
     public function __invoke(string $email, ?string $name = null): void
     {
-        $user = User::query()->where('email', $email)->first();
+        $user = User::query()->withTrashed()->where('email', $email)->first();
+
+        if ($user?->trashed() === true) {
+            throw ValidationException::withMessages([
+                'email' => __('auth.account_deactivated'),
+            ]);
+        }
 
         ['code' => $code, 'token' => $token] = ($this->issue)($email, $name ?? $user?->name);
 

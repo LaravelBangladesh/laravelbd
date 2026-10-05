@@ -5,6 +5,7 @@ namespace App\Domain\Identity\Actions;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\LoginChallenge;
 use App\Domain\Identity\Models\User;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Marks the challenge consumed and returns the matching user, creating one on
@@ -16,7 +17,15 @@ final class ConsumeLoginChallenge
     {
         $challenge->forceFill(['consumed_at' => now()])->save();
 
-        $user = User::query()->where('email', $challenge->email)->first();
+        $user = User::query()->withTrashed()->where('email', $challenge->email)->first();
+
+        // A code sent before the account was deactivated must not sign it in,
+        // nor create a second account on the same email.
+        if ($user?->trashed() === true) {
+            throw ValidationException::withMessages([
+                'code' => __('auth.account_deactivated'),
+            ]);
+        }
 
         if ($user === null) {
             $user = User::query()->make([

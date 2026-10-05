@@ -47,23 +47,20 @@ test('card and form expose localized public and admin fields', function () {
         ->and($form['id'])->toBe($event->id);
 });
 
-test('admin payload hides cancelled attendees', function () {
-    $event = Event::factory()->published()->create();
-    $user = User::factory()->create(['name' => 'Active Member']);
-
-    EventRegistration::factory()->create([
-        'event_id' => $event->id,
+test('an attendee carries the staff-only contact details', function () {
+    $user = User::factory()->create(['name' => 'Active Member', 'mobile_number' => '+8801712345678']);
+    $registration = EventRegistration::factory()->create([
         'user_id' => $user->id,
         'status' => RegistrationStatus::Registered,
+        'registered_at' => '2026-10-01 12:00:00',
     ]);
-    EventRegistration::factory()->cancelled()->create(['event_id' => $event->id]);
 
-    $event->load(['speakers', 'sessions.speakers', 'media', 'registrations.user']);
+    $attendee = EventPresenter::attendee($registration);
 
-    $admin = EventPresenter::admin($event);
-
-    expect($admin['attendees'])->toHaveCount(1)
-        ->and($admin['attendees'][0]['name'])->toBe('Active Member');
+    expect($attendee['name'])->toBe('Active Member')
+        ->and($attendee['mobile_number'])->toBe('+8801712345678')
+        ->and($attendee['registered_at'])->toBe('01 Oct 2026, 18:00')
+        ->and($attendee['answers'])->toBe([]);
 });
 
 test('option lists include every case', function () {

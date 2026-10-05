@@ -256,12 +256,12 @@ test('the admin attendee list carries the answers', function () {
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)
-        ->get(route('admin.events.show', $event))
+        ->get(route('admin.events.attendees.index', $event))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('event.attendees', 1)
-            ->has('event.attendees.0.answers', 1)
-            ->where('event.attendees.0.answers.0.question_id', $question->id)
-            ->where('event.attendees.0.answers.0.label', 'Company')
-            ->where('event.attendees.0.answers.0.value', 'Cefalo'));
+            ->has('attendees.data', 1)
+            ->has('attendees.data.0.answers', 1)
+            ->where('attendees.data.0.answers.0.question_id', $question->id)
+            ->where('attendees.data.0.answers.0.label', 'Company')
+            ->where('attendees.data.0.answers.0.value', 'Cefalo'));
 });

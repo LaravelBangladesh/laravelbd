@@ -1,5 +1,7 @@
 import { screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetInertiaMocks, routerMock, staffUser } from '@/test/inertia';
 import { renderPage } from '@/test/render';
 
 vi.mock('@inertiajs/react', async () =>
@@ -16,7 +18,14 @@ const translations = {
     'admin.cancel': 'Cancel',
     'admin.directory_status': 'Directory',
     'auth.name': 'Name',
+    'admin.role': 'Role',
+    'roles.member': 'Member',
 };
+
+const roles = [
+    { value: 'member', label: 'Member' },
+    { value: 'admin', label: 'Administrator' },
+];
 
 const profile = {
     id: 'user-1',
@@ -32,11 +41,21 @@ const visibilities = [
     { value: 'listed', label: 'Listed' },
 ];
 
+beforeEach(() => {
+    resetInertiaMocks();
+});
+
 describe('AdminUserEdit', () => {
     it('prefills the profile, mobile number and directory status', () => {
-        renderPage(<Page profile={profile} visibilities={visibilities} />, {
-            translations,
-        });
+        renderPage(
+            <Page
+                profile={profile}
+                visibilities={visibilities}
+                role="member"
+                roles={roles}
+            />,
+            { translations },
+        );
 
         expect(
             screen.getByRole('heading', { name: 'Edit profile' }),
@@ -65,6 +84,8 @@ describe('AdminUserEdit', () => {
             <Page
                 profile={{ ...profile, slug: null }}
                 visibilities={visibilities}
+                role="member"
+                roles={roles}
             />,
             { translations },
         );
@@ -72,5 +93,45 @@ describe('AdminUserEdit', () => {
         expect(
             screen.queryByRole('link', { name: 'View public page' }),
         ).not.toBeInTheDocument();
+    });
+
+    it('shows the role as text to a moderator', () => {
+        renderPage(
+            <Page
+                profile={profile}
+                visibilities={visibilities}
+                role="member"
+                roles={roles}
+            />,
+            { translations },
+        );
+
+        expect(screen.getByText('Member')).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: 'Member' }),
+        ).not.toBeInTheDocument();
+    });
+
+    it('lets an admin change the role', async () => {
+        const user = userEvent.setup();
+
+        renderPage(
+            <Page
+                profile={profile}
+                visibilities={visibilities}
+                role="member"
+                roles={roles}
+            />,
+            { translations, auth: { user: staffUser } },
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Member' }));
+        await user.click(screen.getByRole('option', { name: 'Administrator' }));
+
+        expect(routerMock.patch).toHaveBeenCalledWith(
+            '/admin/users/user-1/role',
+            { role: 'admin' },
+            { preserveScroll: true },
+        );
     });
 });

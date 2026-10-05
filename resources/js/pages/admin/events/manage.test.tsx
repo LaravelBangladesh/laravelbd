@@ -26,6 +26,8 @@ const translations = {
     'admin.add_session': 'Add session',
     'admin.no_sessions': 'No sessions yet.',
     'admin.no_attendees': 'No attendees yet.',
+    'admin.attendees_moved': 'Attendees have their own page.',
+    'admin.view_attendees': 'View attendees',
     'admin.view_public': 'View public page',
     'admin.edit_details': 'Edit details',
     'admin.edit': 'Edit',
@@ -114,16 +116,6 @@ const baseEvent: ManagedEvent = {
     ],
     questions: [],
     cfp_questions: [],
-    attendees: [
-        {
-            id: 'a1',
-            name: 'Grace Hopper',
-            email: 'grace@example.test',
-            status: 'registered',
-            status_label: 'Registered',
-            answers: [],
-        },
-    ],
     media: [
         {
             id: 'm1',
@@ -146,6 +138,7 @@ function renderManage(
             questionKinds={questionKinds}
             speakerRoles={speakerRoles}
             availableSpeakers={availableSpeakers}
+            attendeesCount={3}
         />,
         { translations },
         url,
@@ -192,7 +185,7 @@ describe('AdminEventsManage header', () => {
         expect(tabs[0]).toHaveTextContent('Sessions2');
         expect(tabs[1]).toHaveTextContent('Questions0');
         expect(tabs[2]).toHaveTextContent('CFP questions0');
-        expect(tabs[3]).toHaveTextContent('Attendees1');
+        expect(tabs[3]).toHaveTextContent('Attendees3');
         expect(tabs[4]).toHaveTextContent('Media1');
     });
 });
@@ -380,6 +373,7 @@ describe('session reordering', () => {
                 questionKinds={questionKinds}
                 speakerRoles={speakerRoles}
                 availableSpeakers={availableSpeakers}
+                attendeesCount={3}
             />,
         );
 
@@ -470,24 +464,15 @@ describe('session dialog', () => {
 });
 
 describe('attendees tab', () => {
-    it('lists each attendee with a status', () => {
+    it('links to the attendees page', () => {
         renderManage(baseEvent, '/admin/events/e1?tab=attendees');
 
-        expect(screen.getByText('Grace Hopper')).toBeInTheDocument();
-        expect(screen.getByText('grace@example.test')).toBeInTheDocument();
-        expect(screen.getByText('Registered')).toBeInTheDocument();
         expect(
-            screen.getByRole('button', { name: 'Remove' }),
+            screen.getByText('Attendees have their own page.'),
         ).toBeInTheDocument();
-    });
-
-    it('shows the empty state without attendees', () => {
-        renderManage(
-            { ...baseEvent, attendees: [] },
-            '/admin/events/e1?tab=attendees',
-        );
-
-        expect(screen.getByText('No attendees yet.')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'View attendees' }),
+        ).toHaveAttribute('href', '/admin/events/e1/attendees');
     });
 });
 
@@ -737,32 +722,6 @@ describe('questions tab', () => {
         expect(
             screen.getAllByRole('button', { name: 'Delete' }).length,
         ).toBeGreaterThan(0);
-    });
-});
-
-describe('attendee answers', () => {
-    it('lists the answers under the attendee name', () => {
-        renderManage(
-            {
-                ...baseEvent,
-                attendees: [
-                    {
-                        ...baseEvent.attendees[0],
-                        answers: [
-                            {
-                                question_id: 'q1',
-                                label: 'Company',
-                                value: 'Cefalo',
-                            },
-                        ],
-                    },
-                ],
-            },
-            '/admin/events/e1?tab=attendees',
-        );
-
-        expect(screen.getByText(/Company/)).toBeInTheDocument();
-        expect(screen.getByText(/Cefalo/)).toBeInTheDocument();
     });
 });
 

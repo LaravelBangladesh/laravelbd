@@ -26,10 +26,10 @@ test('staff see mobile numbers and directory status in the users list', function
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('admin/users/index')
-            ->where('users.0.name', 'Ada Lovelace')
-            ->where('users.0.mobile_number', $member->mobile_number)
-            ->where('users.0.directory_status', 'pending')
-            ->where('users.0.directory_status_label', __('directory.visibility.pending')));
+            ->where('users.data.0.name', 'Ada Lovelace')
+            ->where('users.data.0.mobile_number', $member->mobile_number)
+            ->where('users.data.0.directory_status', 'pending')
+            ->where('users.data.0.directory_status_label', __('directory.visibility.pending')));
 });
 
 test('staff edit a member profile and approve their listing', function () {

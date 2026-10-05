@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Domain\Shared\Contracts\UrlShortener;
+use App\Infrastructure\Auth\ActiveUserVerifyPasskey;
 use App\Infrastructure\Auth\UuidEloquentUserProvider;
 use App\Infrastructure\Images\CloudflareImageStorage;
 use App\Infrastructure\Images\DiskImageStorage;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Passkeys\Actions\VerifyPasskey;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(UrlShortener::class, MollaUrlShortener::class);
+        $this->app->bind(VerifyPasskey::class, ActiveUserVerifyPasskey::class);
     }
 
     /**

@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
+// A later migration indexes columns this one adds, so it rolls back first.
+beforeEach(function () {
+    (require database_path('migrations/2026_10_06_000100_add_admin_list_indexes.php'))->down();
+});
+
 function profilesMigration(): object
 {
     return require database_path('migrations/2026_10_05_000080_move_directory_profiles_to_users.php');

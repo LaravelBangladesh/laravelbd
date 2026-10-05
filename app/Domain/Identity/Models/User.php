@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -54,6 +55,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read int|null $speaker_events_count Set when the query counts speakerEvents.
  * @property-read SpeakerAssignment|null $pivot Set when loaded through an event or session roster.
  *
@@ -83,7 +85,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasUuidPrimaryKey, LocalizesContent, Notifiable, PasskeyAuthenticatable;
+    use HasFactory, HasUuidPrimaryKey, LocalizesContent, Notifiable, PasskeyAuthenticatable, SoftDeletes;
 
     /**
      * @var array<string, mixed>
