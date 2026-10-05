@@ -55,7 +55,7 @@ test('staff can open event management', function () {
             ->where('event.sessions.0.id', $session->id)
             ->where('availableSpeakers.0', ['value' => $moderator->id, 'label' => 'Ada Lovelace — ada@example.com'])
             ->has('event.speakers')
-            ->has('event.attendees'));
+            ->where('attendeesCount', 0));
 
     $this->actingAs($moderator)
         ->get(route('admin.events.show', ['event' => $event, 'tab' => 'attendees']))

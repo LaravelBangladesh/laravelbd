@@ -1,8 +1,9 @@
+import { router, usePage } from '@inertiajs/react';
 import { Seo } from '@/components/seo';
-import { AdminPageHeader } from '@/components/admin-page-header';
+import { AdminPageHeader, AdminSection } from '@/components/admin-page-header';
 import { ValidatedForm } from '@/components/validated-form';
 import { actionRowClass, Button } from '@/components/design';
-import { type FieldOption } from '@/components/field-select';
+import { FieldSelect, type FieldOption } from '@/components/field-select';
 import {
     ProfileFormFields,
     type ProfileFormValues,
@@ -12,11 +13,16 @@ import { useTrans } from '@/lib/i18n';
 export default function AdminUserEdit({
     profile,
     visibilities,
+    role,
+    roles,
 }: {
     profile: ProfileFormValues & { id: string; name: string };
     visibilities: FieldOption[];
+    role: string;
+    roles: FieldOption[];
 }) {
     const t = useTrans();
+    const { auth } = usePage().props;
 
     return (
         <>
@@ -41,6 +47,24 @@ export default function AdminUserEdit({
                     ) : undefined
                 }
             />
+            <AdminSection title={t('admin.role')} className="mt-8 max-w-3xl">
+                {auth.user?.is_admin ? (
+                    <FieldSelect
+                        defaultValue={role}
+                        options={roles}
+                        className="sm:w-64"
+                        onChange={(next) => {
+                            router.patch(
+                                `/admin/users/${profile.id}/role`,
+                                { role: next },
+                                { preserveScroll: true },
+                            );
+                        }}
+                    />
+                ) : (
+                    <p className="text-ink text-sm">{t(`roles.${role}`)}</p>
+                )}
+            </AdminSection>
             <ValidatedForm
                 action={`/admin/users/${profile.id}`}
                 method="patch"

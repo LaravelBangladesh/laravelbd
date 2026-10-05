@@ -11,6 +11,7 @@ use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\DeleteEvent;
 use App\Domain\Events\Actions\UpdateEvent;
 use App\Domain\Events\Data\EventData;
+use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Models\Event;
 use App\Infrastructure\Images\ImageUpload;
 use Illuminate\Http\RedirectResponse;
@@ -59,10 +60,11 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers']);
+        $event->load(['sessions.speakers', 'speakers', 'media', 'questions']);
 
         return Inertia::render('admin/events/manage', [
             'event' => EventPresenter::admin($event),
+            'attendeesCount' => $event->registrations()->where('status', '!=', RegistrationStatus::Cancelled)->count(),
             'sessionKinds' => EventPresenter::sessionKinds(),
             'questionKinds' => EventPresenter::questionKinds(),
             'speakerRoles' => EventPresenter::speakerRoles(),
@@ -74,7 +76,7 @@ class EventController extends Controller
     {
         $this->authorize('update', $event);
 
-        $event->load(['sessions.speakers', 'speakers', 'media', 'questions', 'registrations.user', 'registrations.answers']);
+        $event->load(['sessions.speakers', 'speakers', 'media', 'questions']);
 
         return Inertia::render('admin/events/edit', [
             'event' => EventPresenter::admin($event),

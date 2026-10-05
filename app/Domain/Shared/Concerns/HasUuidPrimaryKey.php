@@ -16,13 +16,28 @@ trait HasUuidPrimaryKey
 
     public function resolveRouteBinding($value, $field = null): ?static
     {
-        $column = $field ?? $this->getRouteKeyName();
-
-        if ($column === $this->getKeyName() && ! static::isValidUuidKey(is_scalar($value) ? (string) $value : null)) {
+        if (! $this->isBindableKey($value, $field)) {
             return null;
         }
 
         /** @var static|null */
         return parent::resolveRouteBinding($value, $field);
+    }
+
+    public function resolveSoftDeletableRouteBinding($value, $field = null): ?static
+    {
+        if (! $this->isBindableKey($value, $field)) {
+            return null;
+        }
+
+        /** @var static|null */
+        return parent::resolveSoftDeletableRouteBinding($value, $field);
+    }
+
+    private function isBindableKey(mixed $value, ?string $field): bool
+    {
+        $column = $field ?? $this->getRouteKeyName();
+
+        return $column !== $this->getKeyName() || static::isValidUuidKey(is_scalar($value) ? (string) $value : null);
     }
 }

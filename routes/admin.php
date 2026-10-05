@@ -5,6 +5,7 @@ use App\Application\Cfp\Http\Controllers\Admin\TalkProposalController;
 use App\Application\Content\Http\Controllers\Admin\ResourceController;
 use App\Application\Directory\Http\Controllers\Admin\CompanyController;
 use App\Application\Directory\Http\Controllers\Admin\DirectoryController;
+use App\Application\Events\Http\Controllers\Admin\EventAttendeeController;
 use App\Application\Events\Http\Controllers\Admin\EventController;
 use App\Application\Events\Http\Controllers\Admin\EventMediaController;
 use App\Application\Events\Http\Controllers\Admin\EventQuestionController;
@@ -22,8 +23,17 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::get('users', [UserController::class, 'index'])->name('users.index');
-    Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::get('users/export', [UserController::class, 'export'])->name('users.export');
+    Route::get('users/{user}', [UserController::class, 'show'])->withTrashed()->name('users.show');
+    Route::get('users/{user}/edit', [UserController::class, 'edit'])->withTrashed()->name('users.edit');
     Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [UserController::class, 'destroy'])
+        ->middleware('admin')
+        ->name('users.destroy');
+    Route::patch('users/{user}/restore', [UserController::class, 'restore'])
+        ->withTrashed()
+        ->middleware('admin')
+        ->name('users.restore');
     Route::patch('users/{user}/role', UserRoleController::class)
         ->middleware('admin')
         ->name('users.role');
@@ -39,7 +49,10 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('events/{event}/sessions/{eventSession}/speakers/{speaker}', [SessionSpeakerController::class, 'destroy'])->name('events.sessions.speakers.destroy');
     Route::post('events/{event}/media', [EventMediaController::class, 'store'])->name('events.media.store');
     Route::delete('events/{event}/media/{medium}', [EventMediaController::class, 'destroy'])->name('events.media.destroy');
+    Route::get('events/{event}/attendees', [EventAttendeeController::class, 'index'])->name('events.attendees.index');
+    Route::get('events/{event}/attendees/export', [EventAttendeeController::class, 'export'])->name('events.attendees.export');
     Route::delete('events/{event}/registrations/{registration}', [EventRegistrationController::class, 'destroy'])->name('events.registrations.destroy');
+    Route::patch('events/{event}/registrations/{registration}/restore', [EventRegistrationController::class, 'restore'])->name('events.registrations.restore');
     Route::post('events/{event}/questions', [EventQuestionController::class, 'store'])->name('events.questions.store');
     Route::patch('events/{event}/questions/order', [EventQuestionController::class, 'reorder'])->name('events.questions.reorder');
     Route::patch('events/{event}/questions/{question}', [EventQuestionController::class, 'update'])->name('events.questions.update');

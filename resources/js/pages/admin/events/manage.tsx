@@ -71,14 +71,6 @@ type ManagedEvent = {
     sessions: Session[];
     questions: Question[];
     cfp_questions: Question[];
-    attendees: {
-        id: string;
-        name: string | null;
-        email: string | null;
-        status: string;
-        status_label: string;
-        answers: { question_id: string; label: string; value: string }[];
-    }[];
     media: {
         id: string;
         kind: string;
@@ -491,12 +483,14 @@ export default function AdminEventsManage({
     questionKinds,
     speakerRoles,
     availableSpeakers,
+    attendeesCount,
 }: {
     event: ManagedEvent;
     sessionKinds: FieldOption[];
     questionKinds: FieldOption[];
     speakerRoles: FieldOption[];
     availableSpeakers: FieldOption[];
+    attendeesCount: number;
 }) {
     const t = useTrans();
     const { url } = usePage();
@@ -534,7 +528,7 @@ export default function AdminEventsManage({
         {
             id: 'attendees',
             label: t('admin.events_attendees'),
-            count: event.attendees.length,
+            count: attendeesCount,
         },
         {
             id: 'media',
@@ -714,87 +708,15 @@ export default function AdminEventsManage({
                     </TabPanel>
 
                     <TabPanel>
-                        {event.attendees.length === 0 ? (
-                            <AdminEmptyState
-                                label={t('admin.events_attendees')}
-                                description={t('admin.no_attendees')}
-                            />
-                        ) : (
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableHeader>
-                                            {t('auth.name')}
-                                        </TableHeader>
-                                        <TableHeader>
-                                            {t('auth.email')}
-                                        </TableHeader>
-                                        <TableHeader />
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {event.attendees.map((attendee) => (
-                                        <TableRow key={attendee.id}>
-                                            <TableCell className="font-medium">
-                                                <span className="flex items-center gap-2">
-                                                    {attendee.name}
-                                                    <StatusChip
-                                                        status={attendee.status}
-                                                        label={
-                                                            attendee.status_label
-                                                        }
-                                                    />
-                                                </span>
-                                                {attendee.answers.length >
-                                                    0 && (
-                                                    <span className="text-ink-muted mt-1 block text-xs font-normal">
-                                                        {attendee.answers.map(
-                                                            (answer) => (
-                                                                <span
-                                                                    key={
-                                                                        answer.question_id
-                                                                    }
-                                                                    className="block"
-                                                                >
-                                                                    {
-                                                                        answer.label
-                                                                    }
-                                                                    :{' '}
-                                                                    {
-                                                                        answer.value
-                                                                    }
-                                                                </span>
-                                                            ),
-                                                        )}
-                                                    </span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                {attendee.email}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex justify-end">
-                                                    <Form
-                                                        action={`/admin/events/${event.id}/registrations/${attendee.id}`}
-                                                        method="delete"
-                                                        options={{
-                                                            preserveScroll: true,
-                                                        }}
-                                                    >
-                                                        <Button
-                                                            type="submit"
-                                                            variant="ghost"
-                                                        >
-                                                            {t('admin.remove')}
-                                                        </Button>
-                                                    </Form>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        )}
+                        <div className={pageHeaderClass}>
+                            <Text>{t('admin.attendees_moved')}</Text>
+                            <Button
+                                href={`/admin/events/${event.id}/attendees`}
+                                className="w-full sm:w-auto"
+                            >
+                                {t('admin.view_attendees')}
+                            </Button>
+                        </div>
                     </TabPanel>
 
                     <TabPanel>

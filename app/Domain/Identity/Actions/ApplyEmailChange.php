@@ -33,6 +33,7 @@ final class ApplyEmailChange
     public static function emailTaken(string $email, User $user): bool
     {
         return User::query()
+            ->withTrashed()
             ->where('email', $email)
             ->whereKeyNot($user->id)
             ->exists();

@@ -56,14 +56,7 @@ final class RegisterForEvent
                 return $existing;
             }
 
-            $registeredCount = EventRegistration::query()
-                ->where('event_id', $event->id)
-                ->where('status', RegistrationStatus::Registered)
-                ->count();
-
-            $status = $event->capacity !== null && $registeredCount >= $event->capacity
-                ? RegistrationStatus::Waitlisted
-                : RegistrationStatus::Registered;
+            $status = $event->seatStatus();
 
             if ($existing !== null) {
                 $existing->forceFill([

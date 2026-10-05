@@ -8,12 +8,13 @@ use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Domain\Shared\Data\UploadedImage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Adds someone staff bring in, such as a guest speaker, as a member who has
  * not signed in yet. They own the profile once they log in with that email.
  * An email that already has an account returns that user untouched instead
- * of a duplicate.
+ * of a duplicate, unless that account is deactivated.
  */
 final class CreateGuestUser
 {
@@ -22,7 +23,13 @@ final class CreateGuestUser
     public function __invoke(GuestUserData $data, ?UploadedImage $photo = null): User
     {
         $email = Str::lower($data->email);
-        $existing = User::query()->where('email', $email)->first();
+        $existing = User::query()->withTrashed()->where('email', $email)->first();
+
+        if ($existing?->trashed() === true) {
+            throw ValidationException::withMessages([
+                'email' => __('admin.email_deactivated'),
+            ]);
+        }
 
         if ($existing !== null) {
             return $existing;

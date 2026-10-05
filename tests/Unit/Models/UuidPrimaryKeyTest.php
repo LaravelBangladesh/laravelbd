@@ -49,6 +49,15 @@ test('numeric route keys do not resolve uuid models', function () {
         ->and((new Event)->resolveRouteBinding($event->id)?->is($event))->toBeTrue();
 });
 
+test('trashed bindings also skip keys that are not uuids', function () {
+    $user = User::factory()->create();
+    $user->delete();
+
+    expect((new User)->resolveSoftDeletableRouteBinding('1'))->toBeNull()
+        ->and((new User)->resolveSoftDeletableRouteBinding($user->id)?->is($user))->toBeTrue()
+        ->and((new User)->resolveSoftDeletableRouteBinding('ada', 'slug'))->toBeNull();
+});
+
 test('a consumed or expired challenge is inactive', function () {
     $expired = new LoginChallenge([
         'consumed_at' => null,

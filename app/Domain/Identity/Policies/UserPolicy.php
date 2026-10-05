@@ -30,8 +30,28 @@ class UserPolicy
         return $actor->isStaff();
     }
 
+    /**
+     * A deactivated user is reactivated before anyone edits them.
+     */
     public function update(User $actor, User $user): bool
     {
-        return $actor->isStaff();
+        return $actor->isStaff() && ! $user->trashed();
+    }
+
+    /**
+     * Only admins deactivate, and never themselves or another admin, so the
+     * site always keeps an admin who can undo it.
+     */
+    public function delete(User $actor, User $user): bool
+    {
+        return $actor->isAdmin()
+            && ! $user->trashed()
+            && ! $user->is($actor)
+            && ! $user->isAdmin();
+    }
+
+    public function restore(User $actor, User $user): bool
+    {
+        return $actor->isAdmin() && $user->trashed();
     }
 }
