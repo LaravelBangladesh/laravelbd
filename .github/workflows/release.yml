@@ -1,7 +1,8 @@
 name: release
 
 # Tag pushes only. Merges to main run the tests workflow and deploy nothing,
-# so production changes exactly when a version tag is pushed.
+# so production changes exactly when a version tag is pushed. A tag is built
+# and published as a GitHub release first, then that release is deployed.
 on:
   push:
     tags:
@@ -73,8 +74,26 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
 
-  deploy:
+  release:
     needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create GitHub release for ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+          args=(--repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes --verify-tag)
+          case "$TAG" in *-*) args+=(--prerelease) ;; esac
+          gh release create "$TAG" "${args[@]}"
+
+  deploy:
+    needs: [build, release]
     runs-on: ubuntu-latest
     environment: production
 
@@ -110,21 +129,3 @@ jobs:
             docker compose -f compose.prod.yml up -d
             docker compose -f compose.prod.yml exec -T app php artisan migrate --force
             docker image prune -f
-
-  release:
-    needs: [build, deploy]
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Create GitHub release for ${{ github.ref_name }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
-        run: |
-          set -eu
-          args=(--repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes --verify-tag)
-          case "$TAG" in *-*) args+=(--prerelease) ;; esac
-          gh release create "$TAG" "${args[@]}"
