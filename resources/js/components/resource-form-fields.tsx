@@ -3,6 +3,7 @@ import { AdminSection } from '@/components/admin-page-header';
 import { Field, Label } from '@/components/catalyst/fieldset';
 import { Input } from '@/components/catalyst/input';
 import { Textarea } from '@/components/catalyst/textarea';
+import { FieldCombobox } from '@/components/field-combobox';
 import { FieldError } from '@/components/field-error';
 import { FieldSelect, type FieldOption } from '@/components/field-select';
 import { useTrans } from '@/lib/i18n';
@@ -157,7 +158,7 @@ export function ResourceFormFields({
                     </Field>
                     <Field>
                         <Label>{t('admin.speakers')}</Label>
-                        <FieldSelect
+                        <FieldCombobox
                             name="speaker_id"
                             options={[none, ...speakers]}
                             defaultValue={resource?.speaker_id ?? ''}

@@ -11,7 +11,6 @@ use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventMedium;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +20,7 @@ uses(RefreshDatabase::class);
 test('detail merges session speakers onto the public roster', function () {
     $event = Event::factory()->published()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create(['name' => 'Ada Lovelace']);
+    $speaker = User::factory()->create(['name' => 'Ada Lovelace']);
 
     $session->speakers()->attach($speaker, ['role' => 'speaker']);
     $event->load(['speakers', 'sessions.speakers', 'media', 'registrations']);
@@ -31,6 +30,8 @@ test('detail merges session speakers onto the public roster', function () {
     expect($detail['speakers'])->toHaveCount(1)
         ->and($detail['speakers'][0]['name'])->toBe('Ada Lovelace')
         ->and($detail['sessions'][0]['speakers'][0]['name'])->toBe('Ada Lovelace')
+        ->and($detail['speakers'][0]['directory_url'])->toBeNull()
+        ->and($detail['speakers'][0])->not->toHaveKeys(['email', 'mobile_number'])
         ->and($detail['can_rsvp'])->toBeTrue();
 });
 
@@ -101,7 +102,7 @@ test('media, covers and speaker photos resolve through the image storage', funct
     Storage::fake('public');
 
     $event = Event::factory()->published()->create(['cover_path' => 'events/covers/hall.jpg']);
-    $speaker = Speaker::factory()->create(['photo_path' => 'speakers/ada.jpg']);
+    $speaker = User::factory()->create(['photo_path' => 'speakers/ada.jpg']);
     $event->speakers()->attach($speaker, ['role' => 'speaker']);
 
     EventMedium::query()->create([

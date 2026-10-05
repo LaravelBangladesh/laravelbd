@@ -17,6 +17,19 @@ class UserPolicy
             || $viewer?->id === $user->id;
     }
 
+    public function viewAny(User $actor): bool
+    {
+        return $actor->isStaff();
+    }
+
+    /**
+     * Staff add guests, such as speakers who have not signed in yet.
+     */
+    public function create(User $actor): bool
+    {
+        return $actor->isStaff();
+    }
+
     public function update(User $actor, User $user): bool
     {
         return $actor->isStaff();

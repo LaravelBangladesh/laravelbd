@@ -1,12 +1,12 @@
 <?php
 
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests can view the about page', function () {
-    Event::factory()->published()->create();
-    Speaker::factory()->create();
+    Event::factory()->published()->create()->speakers()->attach(User::factory()->create(), ['role' => 'speaker']);
+    User::factory()->create();
 
     $this->get(route('about'))
         ->assertOk()

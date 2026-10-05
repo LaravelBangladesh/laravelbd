@@ -18,7 +18,6 @@ use App\Domain\Events\Models\EventQuestion;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventRegistrationAnswer;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Contracts\ImageStorage;
 use App\Domain\Shared\DhakaTime;
@@ -101,7 +100,7 @@ class EventPresenter
                 ->flatMap(fn (EventSession $session) => $session->speakers)
                 ->concat($event->speakers)
                 ->unique('id')
-                ->map(fn (Speaker $speaker) => [
+                ->map(fn (User $speaker) => [
                     ...self::speaker($speaker),
                     'role' => (string) $speaker->pivot->role,
                     'role_label' => SpeakerRole::tryFrom((string) $speaker->pivot->role)?->label(),
@@ -118,7 +117,7 @@ class EventPresenter
                 'ends_at' => DhakaTime::display($session->ends_at, 'H:i'),
                 'room' => $session->room,
                 'recording_embed' => $session->recording_url ? VideoEmbed::src($session->recording_url) : null,
-                'speakers' => $session->speakers->map(fn (Speaker $speaker) => self::speaker($speaker))->values()->all(),
+                'speakers' => $session->speakers->map(fn (User $speaker) => self::speaker($speaker))->values()->all(),
             ])->values()->all(),
             'photos' => $event->media
                 ->filter(fn (EventMedium $medium) => $medium->kind === MediaKind::Photo)
@@ -189,17 +188,17 @@ class EventPresenter
                 'room' => $session->room,
                 'recording_url' => $session->recording_url,
                 'sort_order' => $session->sort_order,
-                'speakers' => $session->speakers->map(fn (Speaker $speaker) => [
+                'speakers' => $session->speakers->map(fn (User $speaker) => [
                     'id' => $speaker->id,
                     'name' => $speaker->name,
                     'role' => (string) $speaker->pivot->role,
                 ])->values()->all(),
             ])->values()->all(),
-            'speakers' => $event->speakers->map(fn (Speaker $speaker) => [
+            'speakers' => $event->speakers->map(fn (User $speaker) => [
                 'id' => $speaker->id,
                 'name' => $speaker->name,
                 'role' => (string) $speaker->pivot->role,
-                'photo_url' => self::imageUrl($speaker->photo_path),
+                'photo_url' => $speaker->photoUrl(),
             ])->values()->all(),
             'media' => $event->media->map(fn (EventMedium $medium) => [
                 'id' => $medium->id,
@@ -356,9 +355,13 @@ class EventPresenter
     }
 
     /**
+     * The public face of a speaker's profile. It goes on public pages and
+     * feeds, so it never carries the email or the mobile number, and links
+     * to the directory only once the profile is listed there.
+     *
      * @return array<string, mixed>
      */
-    public static function speaker(Speaker $speaker): array
+    public static function speaker(User $speaker): array
     {
         return [
             'id' => $speaker->id,
@@ -366,11 +369,10 @@ class EventPresenter
             'title' => $speaker->title,
             'company' => $speaker->company,
             'bio' => $speaker->localized('bio'),
-            'photo_url' => self::imageUrl($speaker->photo_path),
-            'website' => $speaker->website,
-            'github' => $speaker->github,
-            'linkedin' => $speaker->linkedin,
-            'x' => $speaker->x,
+            'photo_url' => $speaker->photoUrl(),
+            'directory_url' => $speaker->isListed() && $speaker->slug !== null
+                ? route('directory.show', $speaker->slug)
+                : null,
         ];
     }
 }

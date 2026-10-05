@@ -9,7 +9,7 @@ use App\Domain\Events\Actions\DetachSessionSpeaker;
 use App\Domain\Events\Data\SessionSpeakerData;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use App\Infrastructure\Images\ImageUpload;
 use Illuminate\Http\RedirectResponse;
 
@@ -33,7 +33,7 @@ class SessionSpeakerController extends Controller
         return back();
     }
 
-    public function destroy(Event $event, EventSession $eventSession, Speaker $speaker, DetachSessionSpeaker $detach): RedirectResponse
+    public function destroy(Event $event, EventSession $eventSession, User $speaker, DetachSessionSpeaker $detach): RedirectResponse
     {
         $this->authorize('update', $event);
 

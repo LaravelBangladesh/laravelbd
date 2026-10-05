@@ -22,7 +22,7 @@ type ResourceDetail = {
     url: string | null;
     embed: string | null;
     event: { slug: string; title: string } | null;
-    speaker: { name: string } | null;
+    speaker: { name: string; directory_url: string | null } | null;
 };
 
 export default function ResourceShow({
@@ -48,7 +48,16 @@ export default function ResourceShow({
                 )}
                 {resource.speaker && (
                     <p className="text-ink-muted mt-3">
-                        {resource.speaker.name}
+                        {resource.speaker.directory_url ? (
+                            <Link
+                                href={resource.speaker.directory_url}
+                                className="hover:text-brand-red"
+                            >
+                                {resource.speaker.name}
+                            </Link>
+                        ) : (
+                            resource.speaker.name
+                        )}
                     </p>
                 )}
                 {resource.event && (

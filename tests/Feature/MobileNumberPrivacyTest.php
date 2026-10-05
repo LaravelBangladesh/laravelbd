@@ -1,8 +1,10 @@
 <?php
 
 use App\Domain\Cfp\Models\TalkProposal;
+use App\Domain\Content\Models\Resource;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
+use App\Domain\Events\Models\EventSession;
 use App\Domain\Identity\Models\User;
 
 /**
@@ -65,3 +67,36 @@ test('the owner sees their own number on the profile form', function () {
         ->assertOk()
         ->assertSee($this->digits, false);
 });
+
+/**
+ * Speakers are users too, so their email and mobile number must stay off
+ * every page and feed that shows a speaker.
+ */
+test('a speaker\'s email and number never appear where speakers are shown', function (string $url, array $headers) {
+    $speaker = User::factory()->withCompleteProfile()->create([
+        'name' => 'Grace Hopper',
+        'email' => 'grace.private@example.com',
+        'mobile_number' => '+8801812345679',
+    ]);
+    $this->event->speakers()->attach($speaker, ['role' => 'host']);
+    EventSession::factory()->create(['event_id' => $this->event->id])
+        ->speakers()->attach($speaker, ['role' => 'speaker']);
+    Resource::factory()->published()->create([
+        'slug' => 'queues-talk',
+        'event_id' => $this->event->id,
+        'speaker_id' => $speaker->id,
+    ]);
+
+    $this->withHeaders($headers)
+        ->get($url)
+        ->assertOk()
+        ->assertSee('Grace Hopper', false)
+        ->assertDontSee('1812345679', false)
+        ->assertDontSee('grace.private@example.com', false);
+})->with([
+    'event page' => ['/events/laracon-bd', []],
+    'event markdown' => ['/events/laracon-bd', ['Accept' => 'text/markdown']],
+    'llms-full.txt' => ['/llms-full.txt', []],
+    'resources index' => ['/resources', []],
+    'resource page' => ['/resources/queues-talk', []],
+]);

@@ -19,7 +19,7 @@ class AttachSpeakerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'speaker_id' => ['required', 'uuid', 'exists:speakers,id'],
+            'speaker_id' => ['required', 'uuid', 'exists:users,id'],
             'role' => ['required', Rule::enum(SpeakerRole::class)],
         ];
     }

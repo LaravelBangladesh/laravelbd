@@ -16,6 +16,7 @@ const translations = {
     'admin.no_speaker_records': 'No speakers yet.',
     'admin.speaker_title': 'Role',
     'admin.company': 'Company',
+    'admin.events': 'Events',
     'auth.name': 'Name',
 };
 
@@ -25,6 +26,8 @@ const speakers = [
         name: 'Ada Lovelace',
         title: 'Engineer',
         company: 'Analytical Co',
+        photo_url: '/storage/directory/ada.jpg',
+        events_count: 3,
     },
 ];
 
@@ -35,19 +38,24 @@ describe('AdminSpeakersIndex', () => {
         expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
         expect(screen.getByText('Engineer')).toBeInTheDocument();
         expect(screen.getByText('Analytical Co')).toBeInTheDocument();
+        expect(screen.getByText('3')).toBeInTheDocument();
+        expect(document.querySelector('img')).toHaveAttribute(
+            'src',
+            '/storage/directory/ada.jpg',
+        );
         expect(
             screen.getByText('Manage the speaker roster.'),
         ).toBeInTheDocument();
     });
 
-    it('links each row to the speaker edit page', () => {
+    it('links each row to the user edit page', () => {
         const { container } = renderPage(<Page speakers={speakers} />, {
             translations,
         });
 
         expect(container.querySelector('[data-row-link]')).toHaveAttribute(
             'href',
-            '/admin/speakers/speaker-1/edit',
+            '/admin/users/speaker-1/edit',
         );
     });
 

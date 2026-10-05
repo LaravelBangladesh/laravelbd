@@ -5,13 +5,13 @@ namespace App\Application\Events\Http\Controllers\Admin;
 use App\Application\Events\Http\Requests\Admin\StoreEventRequest;
 use App\Application\Events\Http\Requests\Admin\UpdateEventRequest;
 use App\Application\Events\ViewModels\EventPresenter;
+use App\Application\Identity\ViewModels\ProfilePresenter;
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Events\Actions\CreateEvent;
 use App\Domain\Events\Actions\DeleteEvent;
 use App\Domain\Events\Actions\UpdateEvent;
 use App\Domain\Events\Data\EventData;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Infrastructure\Images\ImageUpload;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -66,7 +66,7 @@ class EventController extends Controller
             'sessionKinds' => EventPresenter::sessionKinds(),
             'questionKinds' => EventPresenter::questionKinds(),
             'speakerRoles' => EventPresenter::speakerRoles(),
-            'availableSpeakers' => $this->availableSpeakers(),
+            'availableSpeakers' => ProfilePresenter::staffOptions(),
         ]);
     }
 
@@ -82,7 +82,7 @@ class EventController extends Controller
             'statuses' => EventPresenter::statuses(),
             'sessionKinds' => EventPresenter::sessionKinds(),
             'speakerRoles' => EventPresenter::speakerRoles(),
-            'availableSpeakers' => $this->availableSpeakers(),
+            'availableSpeakers' => ProfilePresenter::staffOptions(),
         ]);
     }
 
@@ -106,16 +106,5 @@ class EventController extends Controller
         $deleteEvent($event);
 
         return to_route('admin.events.index');
-    }
-
-    /**
-     * @return array<int, Speaker>
-     */
-    private function availableSpeakers(): array
-    {
-        return Speaker::query()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->all();
     }
 }

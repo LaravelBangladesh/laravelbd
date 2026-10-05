@@ -43,7 +43,6 @@ import { useTrans } from '@/lib/i18n';
 const TABS = ['sessions', 'questions', 'cfp', 'attendees', 'media'] as const;
 
 type TabId = (typeof TABS)[number];
-type SpeakerOption = { id: string; name: string };
 type Session = SessionFormValues & {
     id: string;
     speakers: { id: string; name: string; role: string }[];
@@ -435,7 +434,7 @@ function SessionDialog({
     session?: Session;
     sessionKinds: FieldOption[];
     speakerRoles: FieldOption[];
-    availableSpeakers: SpeakerOption[];
+    availableSpeakers: FieldOption[];
     onClose: () => void;
 }) {
     const t = useTrans();
@@ -497,7 +496,7 @@ export default function AdminEventsManage({
     sessionKinds: FieldOption[];
     questionKinds: FieldOption[];
     speakerRoles: FieldOption[];
-    availableSpeakers: SpeakerOption[];
+    availableSpeakers: FieldOption[];
 }) {
     const t = useTrans();
     const { url } = usePage();

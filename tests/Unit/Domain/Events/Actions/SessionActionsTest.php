@@ -12,7 +12,7 @@ use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Data\UploadedImage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -49,6 +49,7 @@ test('creates a session with an explicit sort order and a new speaker', function
             'sort_order' => 2,
             'speaker_source' => 'new',
             'speaker_name' => 'Grace Hopper',
+            'speaker_email' => 'grace@example.com',
             'speaker_role' => SpeakerRole::Host->value,
         ])),
         new UploadedImage('binary', 'grace.jpg'),
@@ -56,7 +57,24 @@ test('creates a session with an explicit sort order and a new speaker', function
 
     expect($session->sort_order)->toBe(2)
         ->and($session->speakers()->first()?->name)->toBe('Grace Hopper')
-        ->and($event->speakers()->first()?->name)->toBe('Grace Hopper');
+        ->and($event->speakers()->first()?->name)->toBe('Grace Hopper')
+        ->and($event->speakers()->first()?->email)->toBe('grace@example.com');
+});
+
+test('a new speaker with a known email attaches the existing user', function () {
+    $event = Event::factory()->create();
+    $session = EventSession::factory()->create(['event_id' => $event->id]);
+    $existing = User::factory()->create(['email' => 'grace@example.com']);
+
+    $speaker = app(AttachSessionSpeaker::class)($event, $session, SessionSpeakerData::fromValidated([
+        'speaker_source' => 'new',
+        'speaker_name' => 'Grace Hopper',
+        'speaker_email' => 'grace@example.com',
+    ]));
+
+    expect($speaker?->is($existing))->toBeTrue()
+        ->and(User::query()->where('email', 'grace@example.com')->count())->toBe(1)
+        ->and($session->speakers()->whereKey($existing)->exists())->toBeTrue();
 });
 
 test('updates a session and keeps its position', function () {
@@ -74,7 +92,7 @@ test('updates a session and keeps its position', function () {
 test('deletes a session and releases speakers from the event', function () {
     $event = Event::factory()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
 
     app(AttachSessionSpeaker::class)($event, $session, SessionSpeakerData::fromValidated([
         'speaker_source' => 'existing',
@@ -101,7 +119,7 @@ test('attaching returns null when the input names no speaker', function () {
 test('detaches a speaker from a session', function () {
     $event = Event::factory()->create();
     $session = EventSession::factory()->create(['event_id' => $event->id]);
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
 
     app(AttachSessionSpeaker::class)($event, $session, SessionSpeakerData::fromValidated([
         'speaker_source' => 'existing',

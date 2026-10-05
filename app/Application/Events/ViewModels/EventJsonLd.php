@@ -6,8 +6,7 @@ use App\Application\Shared\ViewModels\JsonLd;
 use App\Application\Shared\ViewModels\MetaDescription;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
-use App\Domain\Shared\Contracts\ImageStorage;
+use App\Domain\Identity\Models\User;
 use App\Domain\Shared\DhakaTime;
 
 final class EventJsonLd
@@ -126,7 +125,7 @@ final class EventJsonLd
     private static function performers(Event $event): array
     {
         return $event->speakers
-            ->map(fn (Speaker $speaker) => self::performer($speaker))
+            ->map(fn (User $speaker) => self::performer($speaker))
             ->values()
             ->all();
     }
@@ -134,13 +133,16 @@ final class EventJsonLd
     /**
      * @return array<string, mixed>
      */
-    private static function performer(Speaker $speaker): array
+    private static function performer(User $speaker): array
     {
+        $profile = EventPresenter::speaker($speaker);
+
         return array_filter([
             '@type' => 'Person',
-            'name' => $speaker->name,
-            'jobTitle' => $speaker->title,
-            'image' => resolve(ImageStorage::class)->url($speaker->photo_path),
+            'name' => $profile['name'],
+            'jobTitle' => $profile['title'],
+            'image' => $profile['photo_url'],
+            'url' => $profile['directory_url'],
         ], fn (?string $value) => $value !== null && $value !== '');
     }
 }

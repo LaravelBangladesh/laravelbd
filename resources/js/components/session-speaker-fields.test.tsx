@@ -27,8 +27,8 @@ const translations = {
 };
 
 const speakers = [
-    { id: 'speaker-1', name: 'Ada Lovelace' },
-    { id: 'speaker-2', name: 'Grace Hopper' },
+    { value: 'speaker-1', label: 'Ada Lovelace — ada@example.com' },
+    { value: 'speaker-2', label: 'Grace Hopper — grace@example.com' },
 ];
 
 const roles = [
@@ -48,6 +48,9 @@ describe('SessionSpeakerFields', () => {
 
         expect(field('speaker_source')).toHaveValue('existing');
         expect(field('speaker_id')).toHaveValue('speaker-1');
+        expect(
+            screen.getByDisplayValue('Ada Lovelace — ada@example.com'),
+        ).toBeInTheDocument();
         expect(field('speaker_role')).toHaveValue('speaker');
         expect(field('speaker_name')).toBeNull();
         expect(
@@ -62,6 +65,8 @@ describe('SessionSpeakerFields', () => {
 
         expect(field('speaker_source')).toHaveValue('new');
         expect(field('speaker_name')).toBeInTheDocument();
+        expect(field('speaker_email')).toBeRequired();
+        expect(field('speaker_email')).toHaveAttribute('type', 'email');
         expect(field('speaker_title')).toBeInTheDocument();
         expect(field('speaker_company')).toBeInTheDocument();
         expect(
@@ -124,6 +129,7 @@ describe('SessionSpeakerFields', () => {
                 errors={{
                     speaker_id: 'Speaker is required',
                     speaker_name: 'Name is required',
+                    speaker_email: 'Email is required',
                 }}
             />,
             { translations },
@@ -137,5 +143,6 @@ describe('SessionSpeakerFields', () => {
         );
 
         expect(screen.getByText('Name is required')).toBeInTheDocument();
+        expect(screen.getByText('Email is required')).toBeInTheDocument();
     });
 });

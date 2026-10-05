@@ -5,7 +5,7 @@ namespace App\Application\Shared\Http\Controllers;
 use App\Application\Shared\ViewModels\Breadcrumbs;
 use App\Application\Shared\ViewModels\MarkdownDocument;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
@@ -41,7 +41,7 @@ class AboutController extends Controller
             ],
             'stats' => [
                 'events' => Event::query()->published()->count(),
-                'speakers' => Speaker::query()->count(),
+                'speakers' => User::query()->speakers()->count(),
             ],
         ]);
     }

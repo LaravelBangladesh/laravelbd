@@ -19,14 +19,9 @@ class StoreSpeakerRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'title' => ['nullable', 'string', 'max:255'],
             'company' => ['nullable', 'string', 'max:255'],
-            'bio_en' => ['nullable', 'string'],
-            'bio_bn' => ['nullable', 'string'],
-            'website' => ['nullable', 'url', 'max:255'],
-            'github' => ['nullable', 'string', 'max:255'],
-            'linkedin' => ['nullable', 'url', 'max:255'],
-            'x' => ['nullable', 'string', 'max:255'],
             'photo' => ImageUpload::rules(),
         ];
     }

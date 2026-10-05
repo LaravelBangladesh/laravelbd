@@ -23,6 +23,7 @@ type Speaker = {
     company: string | null;
     bio: string;
     photo_url: string | null;
+    directory_url: string | null;
     role?: string | null;
     role_label?: string | null;
 };
@@ -309,7 +310,18 @@ export default function EventShow({ event }: { event: EventDetail }) {
                                         />
                                         <div className="min-w-0">
                                             <p className="text-ink font-medium">
-                                                {speaker.name}
+                                                {speaker.directory_url ? (
+                                                    <Link
+                                                        href={
+                                                            speaker.directory_url
+                                                        }
+                                                        className="hover:text-brand-red"
+                                                    >
+                                                        {speaker.name}
+                                                    </Link>
+                                                ) : (
+                                                    speaker.name
+                                                )}
                                             </p>
                                             <p className="text-ink-muted text-sm">
                                                 {[

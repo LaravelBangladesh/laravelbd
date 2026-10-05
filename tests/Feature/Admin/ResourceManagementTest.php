@@ -4,7 +4,6 @@ use App\Domain\Content\Enums\ResourceKind;
 use App\Domain\Content\Enums\ResourceStatus;
 use App\Domain\Content\Models\Resource;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -18,7 +17,7 @@ test('members cannot manage resources', function () {
 
 test('staff can create a video', function () {
     $event = Event::factory()->create();
-    $speaker = Speaker::factory()->create();
+    $speaker = User::factory()->create();
     $moderator = User::factory()->moderator()->create();
 
     $this->actingAs($moderator)

@@ -8,7 +8,6 @@ use App\Domain\Events\Enums\QuestionKind;
 use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -18,15 +17,13 @@ class EventSeeder extends Seeder
     {
         $admin = User::query()->where('role', 'admin')->first();
 
-        $speaker = Speaker::query()->updateOrCreate(
-            ['slug' => 'sumon-selim'],
-            [
-                'name' => 'Sumon Selim',
-                'title' => 'Organizer',
-                'company' => 'Laravel Bangladesh',
-                'bio_en' => 'Community organizer and Laravel developer from Bangladesh.',
-            ],
-        );
+        // Staff can speak too: the organiser hosts the demo meetup.
+        $speaker = $admin;
+        $speaker?->forceFill([
+            'title' => $speaker->title ?? 'Organizer',
+            'company' => $speaker->company ?? 'Laravel Bangladesh',
+            'bio_en' => $speaker->bio_en ?? 'Community organizer and Laravel developer from Bangladesh.',
+        ])->save();
 
         $startsAt = now('Asia/Dhaka')->addWeeks(3)->setTime(18, 0)->utc();
 
@@ -51,9 +48,11 @@ class EventSeeder extends Seeder
             ],
         );
 
-        $event->speakers()->syncWithoutDetaching([
-            $speaker->id => ['role' => SpeakerRole::Host->value],
-        ]);
+        if ($speaker !== null) {
+            $event->speakers()->syncWithoutDetaching([
+                $speaker->id => ['role' => SpeakerRole::Host->value],
+            ]);
+        }
 
         $questions = [
             [QuestionKind::ShortText, 'Company / role', 'কোম্পানি / পদ', 'So we can print a name badge.', null, true],
@@ -85,9 +84,11 @@ class EventSeeder extends Seeder
                 'sort_order' => 1,
             ]);
 
-            $session->speakers()->syncWithoutDetaching([
-                $speaker->id => ['role' => SpeakerRole::Speaker->value],
-            ]);
+            if ($speaker !== null) {
+                $session->speakers()->syncWithoutDetaching([
+                    $speaker->id => ['role' => SpeakerRole::Speaker->value],
+                ]);
+            }
         }
     }
 }

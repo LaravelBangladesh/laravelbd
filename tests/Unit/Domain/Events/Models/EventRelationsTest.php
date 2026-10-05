@@ -3,7 +3,7 @@
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventMedium;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
+use App\Domain\Events\Models\SpeakerAssignment;
 use App\Domain\Events\QueryBuilders\EventQueryBuilder;
 use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,8 +31,8 @@ test('the event query uses the dedicated builder', function () {
 
 test('event speakers keep their pivot order', function () {
     $event = Event::factory()->create();
-    $second = Speaker::factory()->create(['name' => 'Second']);
-    $first = Speaker::factory()->create(['name' => 'First']);
+    $second = User::factory()->create(['name' => 'Second']);
+    $first = User::factory()->create(['name' => 'First']);
 
     $event->speakers()->attach($second, ['role' => 'speaker', 'sort_order' => 2]);
     $event->speakers()->attach($first, ['role' => 'host', 'sort_order' => 1]);
@@ -46,4 +46,21 @@ test('event sessions are ordered by sort order then start time', function () {
     EventSession::factory()->create(['event_id' => $event->id, 'title_en' => 'Opening', 'sort_order' => 1]);
 
     expect($event->sessions->pluck('title_en')->all())->toBe(['Opening', 'Closing']);
+});
+
+test('a user lists the events and sessions they are billed on with their pivot role', function () {
+    $user = User::factory()->create();
+    $event = Event::factory()->create();
+    $session = EventSession::factory()->create(['event_id' => $event->id]);
+
+    $event->speakers()->attach($user, ['role' => 'host', 'sort_order' => 3]);
+    $session->speakers()->attach($user, ['role' => 'speaker']);
+
+    $billed = $user->speakerEvents()->first();
+
+    expect($billed?->id)->toBe($event->id)
+        ->and($billed?->pivot)->toBeInstanceOf(SpeakerAssignment::class)
+        ->and($billed?->pivot->role)->toBe('host')
+        ->and($billed?->pivot->sort_order)->toBe(3)
+        ->and($user->speakerSessions->pluck('id')->all())->toBe([$session->id]);
 });

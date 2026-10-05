@@ -57,6 +57,7 @@ const speaker = {
     company: 'Analytical Co',
     bio: 'Writes programs.',
     photo_url: '/images/ada.jpg',
+    directory_url: '/directory/ada-lovelace',
     role: 'keynote',
     role_label: 'Keynote',
 };
@@ -156,6 +157,9 @@ describe('EventShow', () => {
         expect(screen.getByText('A day of Laravel talks.')).toBeInTheDocument();
         expect(screen.getAllByText('Ada Lovelace')).toHaveLength(2);
         expect(
+            screen.getByRole('link', { name: 'Ada Lovelace' }),
+        ).toHaveAttribute('href', '/directory/ada-lovelace');
+        expect(
             screen.getByText('Engineer · Analytical Co'),
         ).toBeInTheDocument();
         expect(screen.getByText('Keynote')).toBeInTheDocument();
@@ -197,7 +201,12 @@ describe('EventShow', () => {
                 event={{
                     ...event,
                     speakers: [
-                        { ...speaker, photo_url: null, role_label: null },
+                        {
+                            ...speaker,
+                            photo_url: null,
+                            directory_url: null,
+                            role_label: null,
+                        },
                     ],
                     sessions: [
                         {
@@ -228,6 +237,9 @@ describe('EventShow', () => {
         );
 
         expect(screen.queryByText('Keynote')).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole('link', { name: 'Ada Lovelace' }),
+        ).not.toBeInTheDocument();
         expect(screen.queryByText('Hall A')).not.toBeInTheDocument();
         expect(
             screen.queryByText('Lessons from a busy queue.'),

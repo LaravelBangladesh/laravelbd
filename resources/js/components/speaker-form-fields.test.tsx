@@ -16,9 +16,10 @@ const { SpeakerFormFields } = await import('@/components/speaker-form-fields');
 
 const translations = {
     'auth.name': 'Name',
+    'auth.email': 'Email',
+    'admin.speaker_email_help': 'They sign in with this email later.',
     'admin.speaker_title': 'Speaker title',
     'admin.company': 'Company',
-    'admin.website': 'Website',
 };
 
 function field(name: string): HTMLInputElement {
@@ -26,74 +27,18 @@ function field(name: string): HTMLInputElement {
 }
 
 describe('SpeakerFormFields', () => {
-    it('renders empty fields without a speaker', () => {
+    it('renders the guest speaker fields with a required email', () => {
         renderPage(<SpeakerFormFields />, { translations });
 
-        expect(screen.getByText('Speaker title')).toBeInTheDocument();
-        expect(field('name')).toHaveValue('');
+        expect(field('name')).toBeRequired();
+        expect(field('email')).toBeRequired();
+        expect(field('email')).toHaveAttribute('type', 'email');
         expect(field('title')).toHaveValue('');
         expect(field('company')).toHaveValue('');
-        expect(field('bio_en')).toHaveValue('');
-        expect(field('bio_bn')).toHaveValue('');
-        expect(field('website')).toHaveValue('');
-        expect(field('github')).toHaveValue('');
-        expect(field('linkedin')).toHaveValue('');
-        expect(field('x')).toHaveValue('');
+        expect(
+            screen.getByText('They sign in with this email later.'),
+        ).toBeInTheDocument();
         expect(screen.getByTestId('uploader-photo')).toBeInTheDocument();
-    });
-
-    it('renders a fully populated speaker', () => {
-        renderPage(
-            <SpeakerFormFields
-                speaker={{
-                    name: 'Ada Lovelace',
-                    title: 'Engineer',
-                    company: 'Analytical',
-                    bio_en: 'Bio',
-                    bio_bn: 'বায়ো',
-                    website: 'https://example.test',
-                    github: 'ada',
-                    linkedin: 'https://linkedin.test/ada',
-                    x: 'ada',
-                    photo_url: '/images/ada.jpg',
-                }}
-            />,
-            { translations },
-        );
-
-        expect(field('name')).toHaveValue('Ada Lovelace');
-        expect(field('title')).toHaveValue('Engineer');
-        expect(field('company')).toHaveValue('Analytical');
-        expect(field('bio_en')).toHaveValue('Bio');
-        expect(field('bio_bn')).toHaveValue('বায়ো');
-        expect(field('website')).toHaveValue('https://example.test');
-        expect(field('github')).toHaveValue('ada');
-        expect(field('linkedin')).toHaveValue('https://linkedin.test/ada');
-        expect(field('x')).toHaveValue('ada');
-    });
-
-    it('falls back to empty strings for null values', () => {
-        renderPage(
-            <SpeakerFormFields
-                speaker={{
-                    title: null,
-                    company: null,
-                    bio_en: null,
-                    bio_bn: null,
-                    website: null,
-                    github: null,
-                    linkedin: null,
-                    x: null,
-                    photo_url: null,
-                }}
-            />,
-            { translations },
-        );
-
-        expect(field('name')).toHaveValue('');
-        expect(field('title')).toHaveValue('');
-        expect(field('website')).toHaveValue('');
-        expect(field('x')).toHaveValue('');
     });
 
     it('shows validation errors', () => {
@@ -101,13 +46,13 @@ describe('SpeakerFormFields', () => {
             <SpeakerFormFields
                 errors={{
                     name: 'Name is required',
-                    website: 'Website is invalid',
+                    email: 'Email is invalid',
                 }}
             />,
             { translations },
         );
 
         expect(screen.getAllByRole('alert')).toHaveLength(2);
-        expect(screen.getByText('Name is required')).toBeInTheDocument();
+        expect(screen.getByText('Email is invalid')).toBeInTheDocument();
     });
 });

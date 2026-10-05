@@ -11,7 +11,6 @@ use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Events\Enums\SessionKind;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
-use App\Domain\Events\Models\Speaker;
 use App\Domain\Identity\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -67,7 +66,8 @@ test('accepting a proposal creates a session on the event', function () {
         ->and($session->description_en)->toBe('How we test.')
         ->and($session->kind)->toBe(SessionKind::Workshop)
         ->and($session->speakers)->toHaveCount(1)
-        ->and($session->speakers->first()?->name)->toBe($proposal->submitter?->name);
+        ->and($session->speakers->first()?->id)->toBe($proposal->user_id)
+        ->and($event->speakers()->whereKey($proposal->user_id)->exists())->toBeTrue();
 });
 
 test('accepting again does not create a second session', function () {
@@ -141,27 +141,14 @@ test('starts the slot after the last session already on the event', function () 
     expect($session->starts_at->equalTo($existing->ends_at))->toBeTrue();
 });
 
-test('reuses an existing speaker with the submitter name', function () {
-    $event = Event::factory()->create();
-    $user = User::factory()->create(['name' => 'Grace Hopper']);
-    Speaker::factory()->create(['name' => 'Grace Hopper']);
-    $proposal = TalkProposal::factory()->create(['user_id' => $user->id]);
-
-    $session = app(ScheduleAcceptedProposal::class)($proposal, $event);
-
-    expect(Speaker::query()->where('name', 'Grace Hopper')->count())->toBe(1)
-        ->and($session->speakers()->first()?->name)->toBe('Grace Hopper');
-});
-
-test('a submitter who never set a name is billed as a generic speaker', function () {
+test('the submitter is billed even before they set a name', function () {
     $event = Event::factory()->create();
     $user = User::factory()->create(['name' => '']);
     $proposal = TalkProposal::factory()->create(['user_id' => $user->id]);
 
     $session = app(ScheduleAcceptedProposal::class)($proposal, $event);
 
-    expect($session->speakers()->first()?->name)->toBe('Speaker')
-        ->and(Speaker::query()->where('name', 'Speaker')->exists())->toBeTrue();
+    expect($session->speakers()->first()?->is($user))->toBeTrue();
 });
 
 test('refuses to submit while the profile is incomplete', function () {
