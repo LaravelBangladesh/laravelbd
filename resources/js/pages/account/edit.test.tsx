@@ -30,10 +30,10 @@ const translations = {
     'account.save': 'Save',
     'account.directory': 'Directory listing',
     'account.directory_lead': 'Tell members who you are.',
-    'account.directory_edit': 'Edit listing',
-    'account.directory_create': 'Create a listing',
-    'account.directory_none': 'You have no listing yet.',
-    'account.directory_pending': 'Awaiting review',
+    'account.directory_edit': 'Edit profile',
+    'account.directory_status_hidden': 'Not in the directory.',
+    'account.directory_status_pending': 'Awaiting review',
+    'account.directory_status_listed': 'Listed in the directory.',
     'account.talks': 'Your talks',
     'account.talks_lead': 'Proposals you have sent us.',
     'account.no_talks': 'No proposals yet.',
@@ -71,16 +71,21 @@ const registration = {
 
 const directory = {
     slug: 'ada-lovelace',
-    status: 'published',
-    status_label: 'Published',
-    is_published: true,
+    directory_status: 'listed',
+    directory_status_label: 'Listed',
+    is_listed: true,
 };
 
 const baseProps = {
     canManagePasskeys: false,
     passkeys: [],
     proposals: [],
-    directory: null,
+    directory: {
+        slug: null,
+        directory_status: 'hidden',
+        directory_status_label: 'Hidden',
+        is_listed: false,
+    },
     registrations: [],
 };
 
@@ -113,42 +118,45 @@ describe('AccountEdit', () => {
         );
     });
 
-    it('shows the empty states for listings, talks and events', () => {
+    it('shows the empty states for the directory, talks and events', () => {
         renderPage(<Page {...baseProps} />, {
             translations,
             auth: { user: testUser },
         });
 
+        expect(screen.getByText('Not in the directory.')).toBeInTheDocument();
         expect(
-            screen.getByText('You have no listing yet.'),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole('link', { name: 'Create a listing' }),
+            screen.getByRole('link', { name: 'Edit profile' }),
         ).toHaveAttribute('href', '/account/directory');
+        expect(
+            screen.queryByRole('link', { name: 'View public page' }),
+        ).not.toBeInTheDocument();
         expect(screen.getByText('No proposals yet.')).toBeInTheDocument();
         expect(screen.getByText('No registrations yet.')).toBeInTheDocument();
     });
 
-    it('links a published directory listing to its public page', () => {
+    it('links a listed profile to its public page', () => {
         renderPage(<Page {...baseProps} directory={directory} />, {
             translations,
             auth: { user: testUser },
         });
 
         expect(
-            screen.getByRole('link', { name: 'Edit listing' }),
+            screen.getByRole('link', { name: 'Edit profile' }),
         ).toHaveAttribute('href', '/account/directory');
         expect(
             screen.getByRole('link', { name: 'View public page' }),
         ).toHaveAttribute('href', '/directory/ada-lovelace');
-        expect(screen.queryByText('Awaiting review')).not.toBeInTheDocument();
+        expect(
+            screen.getByText('Listed in the directory.'),
+        ).toBeInTheDocument();
     });
 
-    it('flags a directory listing that is still awaiting review', () => {
+    it('flags a profile that is still awaiting review', () => {
         renderPage(
             <Page
                 {...baseProps}
-                directory={{ ...directory, is_published: false }}
+                directory={{ ...directory, directory_status: 'pending' }}
             />,
             { translations, auth: { user: testUser } },
         );

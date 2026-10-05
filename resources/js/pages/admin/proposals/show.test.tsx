@@ -31,7 +31,11 @@ const proposal = {
     status_label: 'Submitted',
     notes: 'Looks promising.',
     answers: [{ id: 'q1', label: 'Company', value: 'Cefalo' }],
-    submitter: { name: 'Ada Lovelace', email: 'ada@example.test' },
+    submitter: {
+        name: 'Ada Lovelace',
+        email: 'ada@example.test',
+        mobile_number: '+8801712345678',
+    },
     event_id: 'event-1',
     event: { slug: 'laracon-dhaka', title: 'Laracon Dhaka' },
 };
@@ -54,7 +58,9 @@ describe('AdminProposalShow', () => {
             screen.getByRole('heading', { name: 'Queues in production' }),
         ).toBeInTheDocument();
         expect(
-            screen.getByText('Ada Lovelace · ada@example.test · Talk'),
+            screen.getByText(
+                'Ada Lovelace · ada@example.test · +8801712345678 · Talk',
+            ),
         ).toBeInTheDocument();
         expect(screen.getAllByText('Submitted').length).toBeGreaterThan(0);
         expect(screen.getAllByText('Laracon Dhaka').length).toBeGreaterThan(0);
@@ -95,7 +101,7 @@ describe('AdminProposalShow', () => {
                     answers: [],
                     event: null,
                     event_id: null,
-                    submitter: { name: null, email: null },
+                    submitter: { name: null, email: null, mobile_number: null },
                     status: 'accepted',
                     status_label: 'Accepted',
                 }}

@@ -2,7 +2,7 @@
 
 use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\EventSession;
@@ -28,7 +28,7 @@ test('application models persist uuid v7 primary keys', function (string $model)
     Speaker::class,
     EventRegistration::class,
     Resource::class,
-    DirectoryListing::class,
+    Company::class,
     TalkProposal::class,
 ]);
 

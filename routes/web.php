@@ -2,7 +2,6 @@
 
 use App\Application\Cfp\Http\Controllers\EventProposalController;
 use App\Application\Content\Http\Controllers\ResourceController;
-use App\Application\Directory\Http\Controllers\Account\DirectoryProfileController;
 use App\Application\Directory\Http\Controllers\DirectoryController;
 use App\Application\Events\Http\Controllers\EventController;
 use App\Application\Events\Http\Controllers\EventRsvpController;
@@ -10,6 +9,7 @@ use App\Application\Events\Http\Controllers\EventShortLinkController;
 use App\Application\Identity\Http\Controllers\Account\AccountController;
 use App\Application\Identity\Http\Controllers\Account\CancelEmailChangeController;
 use App\Application\Identity\Http\Controllers\Account\EmailChangeMagicLinkController;
+use App\Application\Identity\Http\Controllers\Account\ProfileController;
 use App\Application\Identity\Http\Controllers\Account\VerifyEmailChangeController;
 use App\Application\Shared\Http\Controllers\AboutController;
 use App\Application\Shared\Http\Controllers\HomeController;
@@ -31,7 +31,7 @@ Route::get('privacy', PrivacyController::class)->name('privacy');
 Route::get('resources', [ResourceController::class, 'index'])->name('resources.index');
 Route::get('resources/{resource:slug}', [ResourceController::class, 'show'])->name('resources.show');
 Route::get('directory', [DirectoryController::class, 'index'])->name('directory.index');
-Route::get('directory/{listing:slug}', [DirectoryController::class, 'show'])->name('directory.show');
+Route::get('directory/{slug}', [DirectoryController::class, 'show'])->name('directory.show');
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 Route::get('events/{event:slug}', [EventController::class, 'show'])->name('events.show');
 Route::get('e/{event}', EventShortLinkController::class)->whereUuid('event')->name('events.short');
@@ -60,13 +60,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('account', [AccountController::class, 'update'])
         ->middleware('throttle:10,1')
         ->name('account.update');
-    Route::get('account/directory', [DirectoryProfileController::class, 'edit'])->name('account.directory.edit');
-    Route::post('account/directory', [DirectoryProfileController::class, 'store'])
-        ->middleware('throttle:10,1')
-        ->name('account.directory.store');
-    Route::patch('account/directory', [DirectoryProfileController::class, 'update'])
+    Route::get('account/directory', [ProfileController::class, 'edit'])->name('account.directory.edit');
+    Route::patch('account/directory', [ProfileController::class, 'update'])
         ->middleware('throttle:10,1')
         ->name('account.directory.update');
+    Route::patch('account/directory/visibility', [ProfileController::class, 'visibility'])
+        ->middleware('throttle:10,1')
+        ->name('account.directory.visibility');
     Route::post('account/email/code', VerifyEmailChangeController::class)
         ->middleware('throttle:5,1')
         ->name('account.email.code');

@@ -8,7 +8,8 @@ use App\Application\Shared\ViewModels\Breadcrumbs;
 use App\Application\Shared\ViewModels\JsonLd;
 use App\Application\Shared\ViewModels\MarkdownDocument;
 use App\Domain\Directory\Enums\DirectoryKind;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
+use App\Domain\Identity\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
@@ -18,16 +19,22 @@ class DirectoryController extends Controller
 {
     public function index(Request $request): Response|HttpResponse
     {
-        $this->authorize('viewAny', DirectoryListing::class);
+        $this->authorize('viewAny', Company::class);
 
         $kind = $request->enum('kind', DirectoryKind::class);
 
-        $listings = DirectoryListing::query()
-            ->published()
-            ->ofKind($kind)
-            ->alphabetical()
-            ->get()
-            ->map(fn (DirectoryListing $listing) => DirectoryPresenter::card($listing))
+        $people = $kind === DirectoryKind::Company
+            ? collect()
+            : User::query()->listedInDirectory()->get();
+        $companies = $kind === DirectoryKind::Person
+            ? collect()
+            : Company::query()->published()->get();
+
+        $listings = $people->toBase()
+            ->concat($companies)
+            ->sortBy(fn (User|Company $entry) => mb_strtolower($entry->name))
+            ->map(fn (User|Company $entry) => DirectoryPresenter::card($entry))
+            ->values()
             ->all();
 
         if ($request->wantsMarkdown()) {
@@ -56,11 +63,18 @@ class DirectoryController extends Controller
         ]);
     }
 
-    public function show(Request $request, DirectoryListing $listing): Response|HttpResponse
+    /**
+     * People and companies share the directory URL space, so a slug is looked
+     * up among users first and then among companies.
+     */
+    public function show(Request $request, string $slug): Response|HttpResponse
     {
-        $this->authorize('view', $listing);
+        $entry = User::query()->where('slug', $slug)->first()
+            ?? Company::query()->where('slug', $slug)->firstOrFail();
 
-        $detail = DirectoryPresenter::detail($listing);
+        $this->authorize('view', $entry);
+
+        $detail = DirectoryPresenter::detail($entry);
 
         if ($request->wantsMarkdown()) {
             return MarkdownDocument::respond($detail['name'], array_filter([
@@ -71,8 +85,8 @@ class DirectoryController extends Controller
 
         return Inertia::render('directory/show', [
             'listing' => $detail,
-            'is_owner' => $listing->user_id !== null && $listing->user_id === $request->user()?->id,
-            'is_published' => $listing->isPublished(),
+            'is_owner' => $entry instanceof User && $entry->id === $request->user()?->id,
+            'is_published' => $entry instanceof User ? $entry->isListed() : $entry->isPublished(),
         ]);
     }
 }

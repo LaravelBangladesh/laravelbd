@@ -27,8 +27,11 @@ const users = [
         id: 'user-1',
         name: 'Ada Lovelace',
         email: 'ada@example.test',
+        mobile_number: '+8801712345678',
         role: 'member',
         locale: 'en',
+        directory_status: 'pending',
+        directory_status_label: 'Waiting for review',
         created_at: '12 March 2026',
     },
 ];
@@ -51,6 +54,11 @@ describe('AdminUsers', () => {
 
         expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
         expect(screen.getByText('ada@example.test')).toBeInTheDocument();
+        expect(screen.getByText('+8801712345678')).toBeInTheDocument();
+        expect(screen.getByText('Waiting for review')).toBeInTheDocument();
+        expect(
+            screen.getByRole('link', { name: 'Ada Lovelace' }),
+        ).toHaveAttribute('href', '/admin/users/user-1/edit');
         expect(screen.getByText('Manage member access.')).toBeInTheDocument();
     });
 

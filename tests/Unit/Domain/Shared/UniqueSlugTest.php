@@ -23,3 +23,10 @@ test('falls back when a title has no slug characters', function () {
     expect(UniqueSlug::make('!!!', 'speakers'))->toBe('item')
         ->and(Str::isAscii('item'))->toBeTrue();
 });
+
+test('checks every table that shares the url space', function () {
+    Speaker::factory()->create(['name' => 'Ada Lovelace', 'slug' => 'ada-lovelace']);
+    Speaker::factory()->create(['name' => 'Ada Lovelace', 'slug' => 'ada-lovelace-2']);
+
+    expect(UniqueSlug::make('Ada Lovelace', ['resources', 'speakers']))->toBe('ada-lovelace-3');
+});

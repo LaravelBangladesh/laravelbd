@@ -43,6 +43,10 @@ export function messageFor(
         return '';
     }
 
+    if (validity.customError) {
+        return field.validationMessage;
+    }
+
     if (validity.valueMissing) {
         return t('validation.required');
     }

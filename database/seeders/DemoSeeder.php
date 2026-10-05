@@ -5,9 +5,8 @@ namespace Database\Seeders;
 use App\Domain\Cfp\Enums\ProposalKind;
 use App\Domain\Cfp\Enums\ProposalStatus;
 use App\Domain\Cfp\Models\TalkProposal;
-use App\Domain\Directory\Enums\DirectoryKind;
 use App\Domain\Directory\Enums\DirectoryStatus;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
 use App\Domain\Events\Enums\QuestionKind;
@@ -17,12 +16,12 @@ use App\Domain\Events\Enums\SpeakerRole;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Events\Models\Speaker;
+use App\Domain\Identity\Enums\DirectoryVisibility;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Local-only demo content so the UI has something realistic to render.
@@ -254,35 +253,45 @@ class DemoSeeder extends Seeder
         );
     }
 
+    /**
+     * Demo artisans become members with example emails, so every person in
+     * the directory is a user like in production.
+     */
     private function directory(?string $adminId): void
     {
-        /** @var list<array{string, DirectoryKind, string, string|null, string|null, string, bool, string}> $rows */
-        $rows = [
-            ['ahsan-habib', DirectoryKind::Person, 'Ahsan Habib', 'Backend Developer', 'Brain Station 23', 'Dhaka', true, 'Builds Laravel APIs for fintech clients and helps run the Dhaka meetups.'],
-            ['farzana-islam', DirectoryKind::Person, 'Farzana Islam', 'Full-stack Developer', 'Cefalo', 'Dhaka', true, 'Works across Laravel and React, and writes about frontend tooling.'],
-            ['mahmudul-hasan', DirectoryKind::Person, 'Mahmudul Hasan', 'Freelance Developer', null, 'Chattogram', true, 'Freelances on Laravel projects for clients in Europe and Australia.'],
-            ['tanvir-ahmed', DirectoryKind::Person, 'Tanvir Ahmed', 'Software Engineer', 'Therap BD', 'Dhaka', true, 'Builds healthcare software and is interested in queues and background jobs.'],
-            ['sharmin-sultana', DirectoryKind::Person, 'Sharmin Sultana', 'Engineering Manager', 'Kaz Software', 'Sylhet', false, 'Leads a product team in Sylhet and mentors junior Laravel developers.'],
-            ['brain-station-23', DirectoryKind::Company, 'Brain Station 23', 'Software company', null, 'Dhaka', true, 'One of the largest software companies in Bangladesh, with a long-running Laravel practice.'],
-            ['kaz-software', DirectoryKind::Company, 'Kaz Software', 'Software studio', null, 'Dhaka', true, 'A Dhaka studio building custom software for clients in Bangladesh and abroad.'],
-            ['cefalo-bangladesh', DirectoryKind::Company, 'Cefalo Bangladesh', 'Product engineering', null, 'Dhaka', true, 'Product engineering teams working with Norwegian and Bangladeshi clients.'],
+        /** @var list<array{string, string, string, string|null, string, bool, string}> $people */
+        $people = [
+            ['ahsan.habib@example.com', 'Ahsan Habib', 'Backend Developer', 'Brain Station 23', 'Dhaka', true, 'Builds Laravel APIs for fintech clients and helps run the Dhaka meetups.'],
+            ['farzana.islam@example.com', 'Farzana Islam', 'Full-stack Developer', 'Cefalo', 'Dhaka', true, 'Works across Laravel and React, and writes about frontend tooling.'],
+            ['mahmudul.hasan@example.com', 'Mahmudul Hasan', 'Freelance Developer', null, 'Chattogram', true, 'Freelances on Laravel projects for clients in Europe and Australia.'],
+            ['tanvir.ahmed@example.com', 'Tanvir Ahmed', 'Software Engineer', 'Therap BD', 'Dhaka', true, 'Builds healthcare software and is interested in queues and background jobs.'],
+            ['sharmin.sultana@example.com', 'Sharmin Sultana', 'Engineering Manager', 'Kaz Software', 'Sylhet', false, 'Leads a product team in Sylhet and mentors junior Laravel developers.'],
         ];
 
-        foreach ($rows as [$slug, $kind, $name, $title, $company, $city, $isPublished, $bio]) {
-            DirectoryListing::query()->updateOrCreate(
-                ['slug' => $slug],
-                [
-                    'kind' => $kind,
-                    'status' => $isPublished ? DirectoryStatus::Published : DirectoryStatus::Draft,
-                    'name' => $name,
-                    'title' => $title,
-                    'company' => $company,
-                    'city' => $city,
-                    'bio_en' => $bio,
-                    'published_at' => $isPublished ? now() : null,
-                    'created_by' => $adminId,
-                ],
-            );
+        foreach ($people as [$email, $name, $title, $company, $city, $isListed, $bio]) {
+            $this->member($email, $name, $title, $company, $isListed)
+                ->forceFill(['city' => $city, 'bio_en' => $bio])
+                ->save();
+        }
+
+        /** @var list<array{string, string, string, string, string}> $companies */
+        $companies = [
+            ['brain-station-23', 'Brain Station 23', 'Software company', 'Dhaka', 'One of the largest software companies in Bangladesh, with a long-running Laravel practice.'],
+            ['kaz-software', 'Kaz Software', 'Software studio', 'Dhaka', 'A Dhaka studio building custom software for clients in Bangladesh and abroad.'],
+            ['cefalo-bangladesh', 'Cefalo Bangladesh', 'Product engineering', 'Dhaka', 'Product engineering teams working with Norwegian and Bangladeshi clients.'],
+        ];
+
+        foreach ($companies as [$slug, $name, $title, $city, $bio]) {
+            $row = Company::query()->firstOrNew(['slug' => $slug]);
+            $row->forceFill([
+                'status' => DirectoryStatus::Published,
+                'name' => $name,
+                'title' => $title,
+                'city' => $city,
+                'bio_en' => $bio,
+                'published_at' => $row->published_at ?? now(),
+                'created_by' => $adminId,
+            ])->save();
         }
     }
 
@@ -387,10 +396,10 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * A demo member whose own directory listing carries every field the RSVP
-     * and CFP gate asks for.
+     * A demo member whose own profile carries every field the RSVP and CFP
+     * gate asks for, including a mobile number derived from the email.
      */
-    private function member(string $email, string $name, string $title, string $company): User
+    private function member(string $email, string $name, string $title, ?string $company, bool $isListed = true): User
     {
         $user = User::query()->updateOrCreate(
             ['email' => $email],
@@ -401,22 +410,18 @@ class DemoSeeder extends Seeder
             ],
         );
 
-        $user->forceFill(['email_verified_at' => now()])->save();
-
-        DirectoryListing::query()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'slug' => Str::slug($name),
-                'kind' => DirectoryKind::Person,
-                'status' => DirectoryStatus::Published,
-                'name' => $name,
-                'title' => $title,
-                'company' => $company,
-                'city' => 'Dhaka',
-                'photo_path' => $this->demoPhoto(),
-                'published_at' => now(),
-            ],
-        );
+        $user->forceFill([
+            'email_verified_at' => now(),
+            'title' => $title,
+            'company' => $company ?? 'Self employed',
+            'city' => 'Dhaka',
+            'photo_path' => $this->demoPhoto(),
+            'mobile_number' => '+88017'.str_pad((string) (crc32($email) % 100000000), 8, '0', STR_PAD_LEFT),
+            'directory_status' => $isListed ? DirectoryVisibility::Listed : DirectoryVisibility::Pending,
+            'directory_published_at' => $isListed ? ($user->directory_published_at ?? now()) : null,
+        ]);
+        $user->refreshSlug();
+        $user->save();
 
         return $user;
     }
@@ -434,8 +439,8 @@ class DemoSeeder extends Seeder
     }
 
     /**
-     * One member left deliberately without a title, company or photo so the
-     * profile completeness gate can be seen locally.
+     * One member left deliberately without a title, company, photo or mobile
+     * number so the profile completeness gate can be seen locally.
      */
     private function incompleteMember(): void
     {
@@ -448,20 +453,12 @@ class DemoSeeder extends Seeder
             ],
         );
 
-        $user->forceFill(['email_verified_at' => now()])->save();
-
-        DirectoryListing::query()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'slug' => 'habibur-rahman',
-                'kind' => DirectoryKind::Person,
-                'status' => DirectoryStatus::Draft,
-                'name' => 'Habibur Rahman',
-                'title' => null,
-                'company' => null,
-                'photo_path' => null,
-                'city' => 'Khulna',
-            ],
-        );
+        $user->forceFill([
+            'email_verified_at' => now(),
+            'city' => 'Khulna',
+            'directory_status' => DirectoryVisibility::Pending,
+        ]);
+        $user->refreshSlug();
+        $user->save();
     }
 }

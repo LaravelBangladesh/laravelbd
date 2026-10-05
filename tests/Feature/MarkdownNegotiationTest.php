@@ -1,8 +1,9 @@
 <?php
 
 use App\Domain\Content\Models\Resource;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
 use App\Domain\Events\Models\Event;
+use App\Domain\Identity\Models\User;
 
 test('resources respond with markdown when requested', function () {
     $resource = Resource::factory()->published()->create(['title_en' => 'Laravel docs']);
@@ -21,16 +22,24 @@ test('resources respond with markdown when requested', function () {
 });
 
 test('directory listings respond with markdown when requested', function () {
-    $listing = DirectoryListing::factory()->published()->create(['name' => 'Ada Lovelace']);
+    $user = User::factory()->listedInDirectory()->create(['name' => 'Ada Lovelace', 'slug' => 'ada-lovelace']);
+    Company::factory()->published()->create(['name' => 'Analytical Engines', 'slug' => 'analytical-engines']);
 
     $this->withHeaders(['Accept' => 'text/markdown'])
         ->get(route('directory.index'))
         ->assertOk()
         ->assertHeader('Content-Type', 'text/markdown; charset=utf-8')
-        ->assertSee('Ada Lovelace');
+        ->assertSee('Ada Lovelace')
+        ->assertSee('Analytical Engines')
+        ->assertDontSee((string) $user->mobile_number);
 
     $this->withHeaders(['Accept' => 'text/markdown'])
-        ->get(route('directory.show', $listing))
+        ->get(route('directory.show', 'analytical-engines'))
+        ->assertOk()
+        ->assertSee('# Analytical Engines', false);
+
+    $this->withHeaders(['Accept' => 'text/markdown'])
+        ->get(route('directory.show', 'ada-lovelace'))
         ->assertOk()
         ->assertHeader('Content-Type', 'text/markdown; charset=utf-8')
         ->assertSee('# Ada Lovelace', false);

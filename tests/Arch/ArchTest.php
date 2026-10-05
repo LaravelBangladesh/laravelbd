@@ -65,6 +65,7 @@ arch('models')
 
 arch('policies')
     ->expect([
+        'App\Domain\Identity\Policies',
         'App\Domain\Events\Policies',
         'App\Domain\Cfp\Policies',
         'App\Domain\Directory\Policies',
@@ -106,6 +107,7 @@ arch('data objects are final and readonly')
 
 arch('query builders')
     ->expect([
+        'App\Domain\Identity\QueryBuilders',
         'App\Domain\Events\QueryBuilders',
         'App\Domain\Cfp\QueryBuilders',
         'App\Domain\Directory\QueryBuilders',

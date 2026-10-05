@@ -24,10 +24,20 @@ const listings = [
     {
         id: 'listing-1',
         name: 'Ada Lovelace',
+        kind: 'person',
         kind_label: 'Person',
         city: 'Dhaka',
-        status: 'published',
-        status_label: 'Published',
+        status: 'listed',
+        status_label: 'Listed',
+    },
+    {
+        id: 'company-1',
+        name: 'Analytical Engines',
+        kind: 'company',
+        kind_label: 'Company',
+        city: null,
+        status: 'draft',
+        status_label: 'Draft',
     },
 ];
 
@@ -38,21 +48,23 @@ describe('AdminDirectoryIndex', () => {
         expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
         expect(screen.getByText('Person')).toBeInTheDocument();
         expect(screen.getByText('Dhaka')).toBeInTheDocument();
-        expect(screen.getByText('Published')).toBeInTheDocument();
+        expect(screen.getByText('Listed')).toBeInTheDocument();
         expect(
             screen.getByText('Manage the community directory.'),
         ).toBeInTheDocument();
     });
 
-    it('links each row to the listing edit page', () => {
+    it('links people to their profile and companies to the company form', () => {
         const { container } = renderPage(<Page listings={listings} />, {
             translations,
         });
-
-        expect(container.querySelector('[data-row-link]')).toHaveAttribute(
-            'href',
-            '/admin/directory/listing-1/edit',
+        const links = Array.from(
+            container.querySelectorAll('[data-row-link]'),
+            (link) => link.getAttribute('href'),
         );
+
+        expect(links).toContain('/admin/users/listing-1/edit');
+        expect(links).toContain('/admin/directory/company-1/edit');
     });
 
     it('renders a listing without a city', () => {

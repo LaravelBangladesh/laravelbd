@@ -6,66 +6,78 @@ use App\Application\Shared\ViewModels\Breadcrumbs;
 use App\Application\Shared\ViewModels\MetaDescription;
 use App\Domain\Directory\Enums\DirectoryKind;
 use App\Domain\Directory\Enums\DirectoryStatus;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
+use App\Domain\Identity\Models\User;
 
+/**
+ * Public directory entries: people come from users, companies from their own
+ * table. Only public profile fields are read, never contact details.
+ */
 class DirectoryPresenter
 {
+    public static function kind(User|Company $entry): DirectoryKind
+    {
+        return $entry instanceof Company ? DirectoryKind::Company : DirectoryKind::Person;
+    }
+
     /**
      * @return array<string, mixed>
      */
-    public static function card(DirectoryListing $listing): array
+    public static function card(User|Company $entry): array
     {
+        $kind = self::kind($entry);
+
         return [
-            'id' => $listing->id,
-            'slug' => $listing->slug,
-            'name' => $listing->name,
-            'title' => $listing->title,
-            'company' => $listing->company,
-            'city' => $listing->city,
-            'kind' => $listing->kind->value,
-            'kind_label' => $listing->kind->label(),
-            'photo_url' => $listing->photoUrl(),
+            'id' => $entry->id,
+            'slug' => $entry->slug,
+            'name' => $entry->name,
+            'title' => $entry->title,
+            'company' => $entry instanceof User ? $entry->company : null,
+            'city' => $entry->city,
+            'kind' => $kind->value,
+            'kind_label' => $kind->label(),
+            'photo_url' => $entry->photoUrl(),
         ];
     }
 
     /**
      * @return array<string, mixed>
      */
-    public static function detail(DirectoryListing $listing): array
+    public static function detail(User|Company $entry): array
     {
         return [
-            ...self::card($listing),
+            ...self::card($entry),
             'meta_description' => MetaDescription::make(
-                $listing->localized('bio'),
-                self::fallbackDescription($listing),
+                $entry->localized('bio'),
+                self::fallbackDescription($entry),
             ),
             'json_ld' => [
-                DirectoryJsonLd::make($listing),
+                DirectoryJsonLd::make($entry),
                 Breadcrumbs::make([
                     __('nav.home') => url('/'),
                     __('nav.directory') => route('directory.index'),
-                    $listing->name => route('directory.show', $listing->slug),
+                    $entry->name => route('directory.show', (string) $entry->slug),
                 ]),
             ],
-            'bio' => $listing->localized('bio'),
-            'website' => $listing->website,
-            'github' => $listing->github,
-            'linkedin' => $listing->linkedin,
-            'x' => $listing->x,
-            'links' => self::links($listing),
+            'bio' => $entry->localized('bio'),
+            'website' => $entry->website,
+            'github' => $entry->github,
+            'linkedin' => $entry->linkedin,
+            'x' => $entry->x,
+            'links' => self::links($entry),
         ];
     }
 
     /**
      * @return list<array{key: string, url: string}>
      */
-    public static function links(DirectoryListing $listing): array
+    public static function links(User|Company $entry): array
     {
         return array_values(array_filter([
-            ['key' => 'website', 'url' => self::absoluteUrl($listing->website)],
-            ['key' => 'github', 'url' => self::profileUrl($listing->github, 'github.com')],
-            ['key' => 'linkedin', 'url' => self::absoluteUrl($listing->linkedin)],
-            ['key' => 'x', 'url' => self::profileUrl($listing->x, 'x.com')],
+            ['key' => 'website', 'url' => self::absoluteUrl($entry->website)],
+            ['key' => 'github', 'url' => self::profileUrl($entry->github, 'github.com')],
+            ['key' => 'linkedin', 'url' => self::absoluteUrl($entry->linkedin)],
+            ['key' => 'x', 'url' => self::profileUrl($entry->x, 'x.com')],
         ], fn (array $link) => $link['url'] !== null));
     }
 
@@ -102,29 +114,29 @@ class DirectoryPresenter
     /**
      * @return array<string, mixed>
      */
-    public static function form(DirectoryListing $listing): array
+    public static function companyForm(Company $company): array
     {
         return [
-            ...self::detail($listing),
-            'bio_en' => $listing->bio_en,
-            'bio_bn' => $listing->bio_bn,
-            'status' => $listing->status->value,
-            'status_label' => $listing->status->label(),
-            'is_published' => $listing->isPublished(),
+            ...self::detail($company),
+            'bio_en' => $company->bio_en,
+            'bio_bn' => $company->bio_bn,
+            'status' => $company->status->value,
+            'status_label' => $company->status->label(),
+            'is_published' => $company->isPublished(),
         ];
     }
 
     /**
-     * A listing without a bio still deserves a sentence describing who it is,
-     * built from the fields every listing has.
+     * An entry without a bio still deserves a sentence describing who it is,
+     * built from the fields every entry has.
      */
-    private static function fallbackDescription(DirectoryListing $listing): string
+    private static function fallbackDescription(User|Company $entry): string
     {
         return implode(' · ', array_filter([
-            $listing->name,
-            $listing->title,
-            $listing->company,
-            $listing->city,
+            $entry->name,
+            $entry->title,
+            $entry instanceof User ? $entry->company : null,
+            $entry->city,
         ], fn (?string $value) => $value !== null && $value !== ''));
     }
 

@@ -1,7 +1,6 @@
 <?php
 
 use App\Domain\Cfp\Models\TalkProposal;
-use App\Domain\Directory\Models\DirectoryListing;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventRegistration;
 use App\Domain\Identity\Models\User;
@@ -48,7 +47,7 @@ test('the editor lists the missing fields and the pending destination', function
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('account/directory')
-            ->where('missing', ['photo', 'title', 'company'])
+            ->where('missing', ['photo', 'title', 'company', 'mobile_number'])
             ->where('return_to.label', __('profile.return_to.register')));
 });
 
@@ -68,7 +67,6 @@ test('saving a complete profile returns the member to the registration form', fu
 
     $event = Event::factory()->published()->create();
     $member = User::factory()->create();
-    DirectoryListing::factory()->create(['user_id' => $member->id]);
 
     $this->actingAs($member)->post(route('events.rsvp.store', $event));
 
@@ -78,12 +76,13 @@ test('saving a complete profile returns the member to the registration form', fu
             'title' => 'Mathematician',
             'company' => 'Analytical Co',
             'photo' => UploadedFile::fake()->image('ada.jpg'),
+            'mobile_number' => '01712-345678',
         ])
         ->assertRedirect(route('events.register.create', $event))
         ->assertSessionMissing('profile.return_to');
 });
 
-test('a new listing that completes the profile returns the member to the cfp form', function () {
+test('a saved profile that completes returns the member to the cfp form', function () {
     Storage::fake('public');
 
     $event = Event::factory()->acceptingProposals()->create();
@@ -92,11 +91,12 @@ test('a new listing that completes the profile returns the member to the cfp for
     $this->actingAs($member)->get(route('events.cfp.create', $event));
 
     $this->actingAs($member)
-        ->post(route('account.directory.store'), [
+        ->patch(route('account.directory.update'), [
             'name' => 'Ada Lovelace',
             'title' => 'Mathematician',
             'company' => 'Analytical Co',
             'photo' => UploadedFile::fake()->image('ada.jpg'),
+            'mobile_number' => '01712-345678',
         ])
         ->assertRedirect(route('events.cfp.create', $event));
 });
@@ -104,7 +104,6 @@ test('a new listing that completes the profile returns the member to the cfp for
 test('saving a still incomplete profile keeps the member on the editor', function () {
     $event = Event::factory()->published()->create();
     $member = User::factory()->create();
-    DirectoryListing::factory()->create(['user_id' => $member->id]);
 
     $this->actingAs($member)->post(route('events.rsvp.store', $event));
 
@@ -161,7 +160,7 @@ test('cancelling a registration is never gated on the profile', function () {
 
     $this->actingAs($member)->post(route('events.rsvp.store', $event));
 
-    $member->directoryListing?->forceFill(['photo_path' => null])->save();
+    $member->forceFill(['photo_path' => null])->save();
 
     $this->actingAs($member)
         ->delete(route('events.rsvp.destroy', $event))

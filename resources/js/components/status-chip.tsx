@@ -2,6 +2,7 @@ import { Chip } from '@/components/design';
 
 const tones: Record<string, 'green' | 'neutral' | 'red'> = {
     published: 'green',
+    listed: 'green',
     accepted: 'green',
     registered: 'green',
     draft: 'neutral',

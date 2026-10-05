@@ -36,11 +36,11 @@ type Props = {
     status?: string;
     proposals: Proposal[];
     directory: {
-        slug: string;
-        status: string;
-        status_label: string;
-        is_published: boolean;
-    } | null;
+        slug: string | null;
+        directory_status: string;
+        directory_status_label: string;
+        is_listed: boolean;
+    };
     registrations: Registration[];
 };
 
@@ -191,34 +191,24 @@ export default function AccountEdit({
             <div className="border-line mt-12 border-t pt-10">
                 <Heading level={2}>{t('account.directory')}</Heading>
                 <Text className="mt-3">{t('account.directory_lead')}</Text>
-                {directory ? (
-                    <div className={`${actionRowClass} mt-4`}>
-                        <Button href="/account/directory">
-                            {t('account.directory_edit')}
-                        </Button>
+                <Text className="mt-3">
+                    {t(
+                        `account.directory_status_${directory.directory_status}`,
+                    )}
+                </Text>
+                <div className={`${actionRowClass} mt-4`}>
+                    <Button href="/account/directory">
+                        {t('account.directory_edit')}
+                    </Button>
+                    {directory.slug && (
                         <Button
                             href={`/directory/${directory.slug}`}
                             variant="outline"
                         >
                             {t('admin.view_public')}
                         </Button>
-                    </div>
-                ) : (
-                    <div className="mt-4">
-                        <Text>{t('account.directory_none')}</Text>
-                        <Button
-                            href="/account/directory"
-                            className="mt-4 w-full sm:w-auto"
-                        >
-                            {t('account.directory_create')}
-                        </Button>
-                    </div>
-                )}
-                {directory && !directory.is_published && (
-                    <Text className="mt-3">
-                        {t('account.directory_pending')}
-                    </Text>
-                )}
+                    )}
+                </div>
             </div>
 
             <div className="border-line mt-12 border-t pt-10">

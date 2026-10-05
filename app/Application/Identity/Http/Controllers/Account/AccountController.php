@@ -5,6 +5,7 @@ namespace App\Application\Identity\Http\Controllers\Account;
 use App\Application\Cfp\ViewModels\ProposalPresenter;
 use App\Application\Events\ViewModels\EventPresenter;
 use App\Application\Identity\Http\Requests\Account\UpdateAccountRequest;
+use App\Application\Identity\ViewModels\ProfilePresenter;
 use App\Application\Shared\Http\Controllers\Controller;
 use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Events\Enums\RegistrationStatus;
@@ -40,11 +41,9 @@ class AccountController extends Controller
                     ->all()
                 : [],
             'status' => $request->session()->get('status'),
-            'directory' => $user->directoryListing === null ? null : [
-                'slug' => $user->directoryListing->slug,
-                'status' => $user->directoryListing->status->value,
-                'status_label' => $user->directoryListing->status->label(),
-                'is_published' => $user->directoryListing->isPublished(),
+            'directory' => [
+                'slug' => $user->slug,
+                ...ProfilePresenter::directory($user),
             ],
             'proposals' => $user->talkProposals()
                 ->with('event')

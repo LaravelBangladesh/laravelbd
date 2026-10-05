@@ -3,26 +3,25 @@
 namespace App\Application\Directory\ViewModels;
 
 use App\Application\Shared\ViewModels\MetaDescription;
-use App\Domain\Directory\Enums\DirectoryKind;
-use App\Domain\Directory\Models\DirectoryListing;
+use App\Domain\Directory\Models\Company;
+use App\Domain\Identity\Models\User;
 
 final class DirectoryJsonLd
 {
     /**
-     * Build the schema.org entity describing a directory listing, which is a
+     * Build the schema.org entity describing a directory entry, which is a
      * Person for artisans and an Organization for companies.
      *
      * @return array<string, mixed>
      */
-    public static function make(DirectoryListing $listing): array
+    public static function make(User|Company $entry): array
     {
-        $sameAs = array_column(DirectoryPresenter::links($listing), 'url');
-        $description = MetaDescription::make($listing->localized('bio'));
-        $image = $listing->photoUrl();
+        $sameAs = array_column(DirectoryPresenter::links($entry), 'url');
+        $description = MetaDescription::make($entry->localized('bio'));
 
-        $schema = $listing->kind === DirectoryKind::Company
-            ? self::company($listing, $image)
-            : self::person($listing, $image);
+        $schema = $entry instanceof Company
+            ? self::company($entry)
+            : self::person($entry);
 
         if ($description !== '') {
             $schema['description'] = $description;
@@ -38,61 +37,61 @@ final class DirectoryJsonLd
     /**
      * @return array<string, mixed>
      */
-    private static function person(DirectoryListing $listing, ?string $image): array
+    private static function person(User $user): array
     {
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Person',
-            'name' => $listing->name,
-            'url' => route('directory.show', $listing->slug),
+            'name' => $user->name,
+            'url' => route('directory.show', (string) $user->slug),
+            'image' => $user->photoUrl(),
         ];
 
-        if ($listing->title !== null && $listing->title !== '') {
-            $schema['jobTitle'] = $listing->title;
+        if ($user->title !== null && $user->title !== '') {
+            $schema['jobTitle'] = $user->title;
         }
 
-        if ($listing->company !== null && $listing->company !== '') {
+        if ($user->company !== null && $user->company !== '') {
             $schema['worksFor'] = [
                 '@type' => 'Organization',
-                'name' => $listing->company,
+                'name' => $user->company,
             ];
         }
 
-        if ($image !== null) {
-            $schema['image'] = $image;
-        }
-
-        if ($listing->city !== null && $listing->city !== '') {
-            $schema['address'] = [
-                '@type' => 'PostalAddress',
-                'addressLocality' => $listing->city,
-                'addressCountry' => 'BD',
-            ];
-        }
-
-        return $schema;
+        return self::withAddress($schema, $user->city);
     }
 
     /**
      * @return array<string, mixed>
      */
-    private static function company(DirectoryListing $listing, ?string $image): array
+    private static function company(Company $company): array
     {
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
-            'name' => $listing->name,
-            'url' => route('directory.show', $listing->slug),
+            'name' => $company->name,
+            'url' => route('directory.show', $company->slug),
         ];
 
-        if ($image !== null) {
-            $schema['logo'] = $image;
+        $logo = $company->photoUrl();
+
+        if ($logo !== null) {
+            $schema['logo'] = $logo;
         }
 
-        if ($listing->city !== null && $listing->city !== '') {
+        return self::withAddress($schema, $company->city);
+    }
+
+    /**
+     * @param  array<string, mixed>  $schema
+     * @return array<string, mixed>
+     */
+    private static function withAddress(array $schema, ?string $city): array
+    {
+        if ($city !== null && $city !== '') {
             $schema['address'] = [
                 '@type' => 'PostalAddress',
-                'addressLocality' => $listing->city,
+                'addressLocality' => $city,
                 'addressCountry' => 'BD',
             ];
         }

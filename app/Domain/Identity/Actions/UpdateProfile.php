@@ -17,10 +17,12 @@ final class UpdateProfile
 
     public function __invoke(User $user, ProfileData $data): bool
     {
-        $user->update([
+        $user->fill([
             'name' => $data->name,
             'locale' => $data->locale,
         ]);
+        $user->refreshSlug();
+        $user->save();
 
         if ($data->email !== $user->email) {
             ($this->request)($user, $data->email);

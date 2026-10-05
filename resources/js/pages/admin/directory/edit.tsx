@@ -4,19 +4,17 @@ import { AdminPageHeader } from '@/components/admin-page-header';
 import { ValidatedForm } from '@/components/validated-form';
 import { actionRowClass, Button } from '@/components/design';
 import {
-    DirectoryFormFields,
-    type DirectoryFormValues,
-} from '@/components/directory-form-fields';
+    CompanyFormFields,
+    type CompanyFormValues,
+} from '@/components/company-form-fields';
 import { type FieldOption } from '@/components/field-select';
 import { useTrans } from '@/lib/i18n';
 
 export default function AdminDirectoryEdit({
-    listing,
-    kinds,
+    company,
     statuses,
 }: {
-    listing: DirectoryFormValues & { id: string; slug: string };
-    kinds: FieldOption[];
+    company: CompanyFormValues & { id: string; slug: string; name: string };
     statuses: FieldOption[];
 }) {
     const t = useTrans();
@@ -31,10 +29,10 @@ export default function AdminDirectoryEdit({
             <AdminPageHeader
                 eyebrow={t('admin.directory_title')}
                 title={t('admin.directory_edit')}
-                description={listing.name}
+                description={company.name}
                 actions={
                     <Button
-                        href={`/directory/${listing.slug}`}
+                        href={`/directory/${company.slug}`}
                         variant="outline"
                         className="w-full sm:w-auto"
                     >
@@ -43,16 +41,15 @@ export default function AdminDirectoryEdit({
                 }
             />
             <ValidatedForm
-                action={`/admin/directory/${listing.id}`}
+                action={`/admin/directory/${company.id}`}
                 method="patch"
                 encType="multipart/form-data"
                 className="mt-8 grid max-w-3xl grid-cols-1 gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <DirectoryFormFields
-                            listing={listing}
-                            kinds={kinds}
+                        <CompanyFormFields
+                            company={company}
                             statuses={statuses}
                             errors={errors}
                         />
@@ -68,7 +65,7 @@ export default function AdminDirectoryEdit({
                 )}
             </ValidatedForm>
             <Form
-                action={`/admin/directory/${listing.id}`}
+                action={`/admin/directory/${company.id}`}
                 method="delete"
                 className="mt-6 max-w-3xl"
             >

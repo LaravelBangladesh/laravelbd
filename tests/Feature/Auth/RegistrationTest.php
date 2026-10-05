@@ -1,6 +1,5 @@
 <?php
 
-use App\Domain\Directory\Models\DirectoryListing;
 use App\Domain\Identity\Enums\UserRole;
 use App\Domain\Identity\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -54,7 +53,7 @@ test('new members must complete their profile before using the rest of the site'
         ->assertOk();
 
     $this->actingAs($user)
-        ->post(route('account.directory.store'), [
+        ->patch(route('account.directory.update'), [
             'name' => 'Sumon Selim',
             'company' => 'Laravel Bangladesh',
             'title' => 'Organizer',
@@ -63,15 +62,13 @@ test('new members must complete their profile before using the rest of the site'
         ->assertRedirect(route('account.directory.edit'));
 
     $user->refresh();
-    $listing = $user->directoryListing;
 
     expect($user->name)->toBe('Sumon Selim')
         ->and($user->needsProfile())->toBeFalse()
-        ->and($listing)->not->toBeNull()
-        ->and($listing?->company)->toBe('Laravel Bangladesh')
-        ->and($listing?->title)->toBe('Organizer')
-        ->and($listing?->bio_en)->toBe('Community organizer.')
-        ->and(DirectoryListing::query()->where('user_id', $user->id)->count())->toBe(1);
+        ->and($user->company)->toBe('Laravel Bangladesh')
+        ->and($user->title)->toBe('Organizer')
+        ->and($user->bio_en)->toBe('Community organizer.')
+        ->and($user->slug)->toBe('sumon-selim');
 
     $this->actingAs($user)
         ->get(route('home'))
