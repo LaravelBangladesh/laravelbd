@@ -29,6 +29,7 @@ arch()->preset()->laravel()
         // tightened in architecture step 3b: the preset also hardcodes
         // App\Mail, which the modular layout replaces with per-context mail.
         'App\Domain\Identity\Mail',
+        'App\Domain\Events\Mail',
         // tightened in architecture step 3a: bounded-context controllers and
         // form requests live under App\Application, not App\Http.
         'App\Application\Events\Http',

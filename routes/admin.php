@@ -10,6 +10,7 @@ use App\Application\Events\Http\Controllers\Admin\EventController;
 use App\Application\Events\Http\Controllers\Admin\EventMediaController;
 use App\Application\Events\Http\Controllers\Admin\EventQuestionController;
 use App\Application\Events\Http\Controllers\Admin\EventRegistrationController;
+use App\Application\Events\Http\Controllers\Admin\EventReminderController;
 use App\Application\Events\Http\Controllers\Admin\EventSessionController;
 use App\Application\Events\Http\Controllers\Admin\EventSpeakerController;
 use App\Application\Events\Http\Controllers\Admin\ReorderSessionsController;
@@ -53,6 +54,9 @@ Route::middleware(['auth', 'staff'])->prefix('admin')->name('admin.')->group(fun
     Route::get('events/{event}/attendees/export', [EventAttendeeController::class, 'export'])->name('events.attendees.export');
     Route::delete('events/{event}/registrations/{registration}', [EventRegistrationController::class, 'destroy'])->name('events.registrations.destroy');
     Route::patch('events/{event}/registrations/{registration}/restore', [EventRegistrationController::class, 'restore'])->name('events.registrations.restore');
+    Route::get('events/{event}/reminders/preview', [EventReminderController::class, 'preview'])->name('events.reminders.preview');
+    Route::post('events/{event}/reminders', [EventReminderController::class, 'store'])->name('events.reminders.store');
+    Route::post('events/{event}/registrations/{registration}/reminder', [EventReminderController::class, 'resend'])->name('events.registrations.reminder');
     Route::post('events/{event}/questions', [EventQuestionController::class, 'store'])->name('events.questions.store');
     Route::patch('events/{event}/questions/order', [EventQuestionController::class, 'reorder'])->name('events.questions.reorder');
     Route::patch('events/{event}/questions/{question}', [EventQuestionController::class, 'update'])->name('events.questions.update');

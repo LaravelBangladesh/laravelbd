@@ -56,7 +56,7 @@ export default function PasskeyVerify({
                         )}
                         {isLoading
                             ? (loadingLabel ?? 'Authenticating...')
-                            : (label ?? 'Sign in with a passkey')}
+                            : (label ?? 'Log In with a passkey')}
                     </span>
                 </Button>
                 {error && (

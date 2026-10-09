@@ -7,6 +7,7 @@ use App\Application\Shared\ViewModels\Localized;
 use App\Application\Shared\ViewModels\MetaDescription;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
+use App\Domain\Events\Enums\MailDeliveryStatus;
 use App\Domain\Events\Enums\MediaKind;
 use App\Domain\Events\Enums\QuestionKind;
 use App\Domain\Events\Enums\SessionKind;
@@ -244,6 +245,8 @@ class EventPresenter
             'status' => $registration->status->value,
             'status_label' => $registration->status->label(),
             'registered_at' => DhakaTime::display($registration->registered_at),
+            'confirmation' => self::delivery($registration->confirmation_status, $registration->confirmation_sent_at),
+            'reminder' => self::delivery($registration->reminder_status, $registration->reminder_sent_at),
             'answers' => $registration->answers
                 ->map(fn (EventRegistrationAnswer $answer) => [
                     'question_id' => $answer->question['id'],
@@ -252,6 +255,18 @@ class EventPresenter
                 ])
                 ->values()
                 ->all(),
+        ];
+    }
+
+    /**
+     * @return array{status: string, label: string, sent_at: string|null}
+     */
+    private static function delivery(MailDeliveryStatus $status, ?\DateTimeInterface $sentAt): array
+    {
+        return [
+            'status' => $status->value,
+            'label' => $status->label(),
+            'sent_at' => DhakaTime::display($sentAt),
         ];
     }
 

@@ -3,7 +3,7 @@
 
 {{ __('account.email.mail.intro') }}
 
-{{ __('auth.mail.code_label') }}: **{{ $code }}**
+<x-mail::code :label="__('auth.mail.code_label')">{{ $code }}</x-mail::code>
 
 {{ __('auth.mail.link_intro') }}
 
