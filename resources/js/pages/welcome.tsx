@@ -1,16 +1,14 @@
 import { Seo } from '@/components/seo';
 import type { JsonLd } from '@/types/seo';
 import { EventCard, type EventCardData } from '@/components/event-card';
+import { HomeHero, type FeaturedEvent } from '@/components/home-hero';
 import {
     actionRowClass,
-    BrandBar,
     Button,
     Container,
     Display,
     Eyebrow,
-    LaravelMark,
     Lead,
-    Mesh,
     Section,
     Surface,
 } from '@/components/design';
@@ -18,29 +16,22 @@ import { useTrans } from '@/lib/i18n';
 
 type Props = {
     upcomingEvents: EventCardData[];
+    featuredEvent: FeaturedEvent | null;
     json_ld: JsonLd[];
     stats: {
         events: number;
+        meetups: number;
+        cities: number;
     };
 };
 
-export default function Welcome({ upcomingEvents, json_ld, stats }: Props) {
+export default function Welcome({
+    upcomingEvents,
+    featuredEvent,
+    json_ld,
+    stats,
+}: Props) {
     const t = useTrans();
-
-    const facts = [
-        {
-            label: t('home.facts.members'),
-            value: t('home.facts.members_value'),
-        },
-        {
-            label: t('home.facts.founded'),
-            value: t('home.facts.founded_value'),
-        },
-        {
-            label: t('home.facts.meetups'),
-            value: String(stats.events),
-        },
-    ];
 
     return (
         <>
@@ -49,42 +40,7 @@ export default function Welcome({ upcomingEvents, json_ld, stats }: Props) {
                 description={t('meta.home')}
                 jsonLd={json_ld}
             />
-            <Section className="relative overflow-hidden">
-                <Mesh />
-                <Container className="relative grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-[minmax(0,1.15fr)_minmax(16rem,0.85fr)] lg:gap-16 lg:py-28">
-                    <div>
-                        <Eyebrow>{t('home.hero.eyebrow')}</Eyebrow>
-                        <Display className="mt-5 max-w-3xl">
-                            {t('home.hero.title')}
-                        </Display>
-                        <Lead className="mt-6 max-w-2xl">
-                            {t('home.hero.lead')}
-                        </Lead>
-                        <div className={`${actionRowClass} mt-10`}>
-                            <Button href="/about">{t('nav.about')} →</Button>
-                            <Button href="/events" variant="outline">
-                                {t('nav.events')}
-                            </Button>
-                        </div>
-                    </div>
-                    <LaravelMark />
-                </Container>
-                <BrandBar />
-                <Container>
-                    <dl className="grid gap-8 py-8 sm:grid-cols-3">
-                        {facts.map((fact) => (
-                            <div key={fact.label}>
-                                <dt className="text-ink-muted text-sm">
-                                    {fact.label}
-                                </dt>
-                                <dd className="text-ink mt-2 text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
-                                    {fact.value}
-                                </dd>
-                            </div>
-                        ))}
-                    </dl>
-                </Container>
-            </Section>
+            <HomeHero featuredEvent={featuredEvent} counts={stats} />
 
             <Section tone="canvas">
                 <Container className="py-20 sm:py-24">

@@ -38,7 +38,12 @@ test('the home page counts published events for the facts row', function () {
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('stats.events', 2));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('stats.events', 2)
+            ->where('stats.meetups', 2)
+            ->where('stats.cities', 0)
+            ->missing('stats.speakers')
+            ->missing('stats.members'));
 });
 
 test('the about page carries its breadcrumbs', function () {

@@ -4,6 +4,7 @@ use App\Domain\Events\Enums\EventType;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventSession;
 use App\Domain\Identity\Models\User;
+use App\Domain\Shared\DhakaTime;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('the home page returns a successful response', function () {
@@ -119,8 +120,9 @@ test('the home page lists the three soonest upcoming events first', function () 
         'starts_at' => now()->addDays(60),
         'ends_at' => now()->addDays(60)->addHours(3),
     ]);
-    Event::factory()->published()->create([
+    $soon = Event::factory()->published()->create([
         'title_en' => 'Very soon',
+        'venue_name' => 'Chittagong',
         'starts_at' => now()->addDays(2),
         'ends_at' => now()->addDays(2)->addHours(3),
     ]);
@@ -130,7 +132,36 @@ test('the home page lists the three soonest upcoming events first', function () 
         ->assertInertia(fn (Assert $page) => $page
             ->component('welcome')
             ->where('upcomingEvents.0.title', 'Very soon')
-            ->where('upcomingEvents.1.title', 'Furthest away'));
+            ->where('upcomingEvents.1.title', 'Furthest away')
+            ->where('featuredEvent.title', 'Very soon')
+            ->where('featuredEvent.starts_at', DhakaTime::display($soon->starts_at, 'd M Y'))
+            ->where('featuredEvent.starts_at_iso', $soon->starts_at->toIso8601String())
+            ->where('featuredEvent.venue_name', 'Chittagong')
+            ->where('featuredEvent.is_upcoming', true));
+});
+
+test('the home page features the most recent past event when nothing is upcoming', function () {
+    Event::factory()->published()->create([
+        'title_en' => 'Older meetup',
+        'starts_at' => now()->subDays(40),
+        'ends_at' => now()->subDays(40)->addHours(3),
+    ]);
+    $latest = Event::factory()->published()->create([
+        'title_en' => 'Latest meetup',
+        'venue_name' => 'Sylhet',
+        'starts_at' => now()->subDays(3),
+        'ends_at' => now()->subDays(3)->addHours(3),
+    ]);
+
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('welcome')
+            ->where('upcomingEvents', [])
+            ->where('featuredEvent.title', 'Latest meetup')
+            ->where('featuredEvent.starts_at', DhakaTime::display($latest->starts_at, 'd M Y'))
+            ->where('featuredEvent.venue_name', 'Sylhet')
+            ->where('featuredEvent.is_upcoming', false));
 });
 
 test('the events index can be filtered by type', function () {
