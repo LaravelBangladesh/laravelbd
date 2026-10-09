@@ -17,6 +17,7 @@ import { Button, Chip } from '@/components/design';
 import { type FieldOption } from '@/components/field-select';
 import { ListToolbar } from '@/components/list-toolbar';
 import { Pagination, type Paginated } from '@/components/pagination';
+import { ReminderDialog } from '@/components/reminder-dialog';
 import { Seo } from '@/components/seo';
 import { StatusChip } from '@/components/status-chip';
 import { useTrans } from '@/lib/i18n';
@@ -30,23 +31,32 @@ type Attendee = {
     status: string;
     status_label: string;
     registered_at: string | null;
+    confirmation: Delivery;
+    reminder: Delivery;
     answers: { question_id: string; label: string; value: string }[];
 };
+
+type Delivery = { status: string; label: string; sent_at: string | null };
 
 export default function AdminEventAttendees({
     event,
     attendees,
     filters,
     statuses,
+    mailStatuses,
+    reminder,
 }: {
     event: { id: string; title_en: string };
     attendees: Paginated<Attendee>;
-    filters: { q: string; status: string };
+    filters: { q: string; status: string; reminder: string };
     statuses: FieldOption[];
+    mailStatuses: FieldOption[];
+    reminder: { available: boolean; recipients: number };
 }) {
     const t = useTrans();
     const path = `/admin/events/${event.id}/attendees`;
-    const filtered = filters.q !== '' || filters.status !== '';
+    const filtered =
+        filters.q !== '' || filters.status !== '' || filters.reminder !== '';
     const registrationPath = (attendee: Attendee) =>
         `/admin/events/${event.id}/registrations/${attendee.id}`;
 
@@ -62,13 +72,21 @@ export default function AdminEventAttendees({
                 title={t('admin.events_attendees')}
                 description={t('admin.attendees_lead')}
                 actions={
-                    <Button
-                        href={`/admin/events/${event.id}`}
-                        variant="outline"
-                        className="w-full sm:w-auto"
-                    >
-                        {t('admin.events_manage')}
-                    </Button>
+                    <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                        {reminder.available && (
+                            <ReminderDialog
+                                eventId={event.id}
+                                recipients={reminder.recipients}
+                            />
+                        )}
+                        <Button
+                            href={`/admin/events/${event.id}`}
+                            variant="outline"
+                            className="w-full sm:w-auto"
+                        >
+                            {t('admin.events_manage')}
+                        </Button>
+                    </div>
                 }
             />
             <ListToolbar
@@ -86,6 +104,17 @@ export default function AdminEventAttendees({
                                 label: t('admin.filter_all_statuses'),
                             },
                             ...statuses,
+                        ],
+                    },
+                    {
+                        name: 'reminder',
+                        label: t('admin.reminder'),
+                        options: [
+                            {
+                                value: '',
+                                label: t('admin.filter_all_reminders'),
+                            },
+                            ...mailStatuses,
                         ],
                     },
                 ]}
@@ -115,6 +144,9 @@ export default function AdminEventAttendees({
                                 </TableHeader>
                                 <TableHeader className="hidden lg:table-cell">
                                     {t('admin.registered_at')}
+                                </TableHeader>
+                                <TableHeader className="hidden sm:table-cell">
+                                    {t('admin.emails')}
                                 </TableHeader>
                                 <TableHeader />
                             </TableRow>
@@ -162,8 +194,79 @@ export default function AdminEventAttendees({
                                     <TableCell className="hidden lg:table-cell">
                                         {attendee.registered_at}
                                     </TableCell>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <span className="flex flex-col gap-1">
+                                            {(
+                                                [
+                                                    'confirmation',
+                                                    'reminder',
+                                                ] as const
+                                            ).map((kind) => (
+                                                <span
+                                                    key={kind}
+                                                    className="flex items-center gap-2"
+                                                    title={
+                                                        attendee[kind]
+                                                            .sent_at ??
+                                                        undefined
+                                                    }
+                                                >
+                                                    <span className="text-ink-muted w-24 text-xs">
+                                                        {t(`admin.${kind}`)}
+                                                    </span>
+                                                    <StatusChip
+                                                        status={
+                                                            attendee[kind]
+                                                                .status
+                                                        }
+                                                        label={
+                                                            attendee[kind].label
+                                                        }
+                                                    />
+                                                </span>
+                                            ))}
+                                        </span>
+                                    </TableCell>
                                     <TableCell>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-end gap-2">
+                                            {reminder.available &&
+                                                attendee.status ===
+                                                    'registered' &&
+                                                attendee.reminder.status !==
+                                                    'queued' && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        type="button"
+                                                        onClick={() =>
+                                                            router.post(
+                                                                `${registrationPath(attendee)}/reminder`,
+                                                                {},
+                                                                {
+                                                                    preserveScroll: true,
+                                                                    onError: (
+                                                                        errors,
+                                                                    ) => {
+                                                                        toast.error(
+                                                                            Object.values(
+                                                                                errors,
+                                                                            ).join(
+                                                                                ' ',
+                                                                            ),
+                                                                        );
+                                                                    },
+                                                                },
+                                                            )
+                                                        }
+                                                    >
+                                                        {t(
+                                                            attendee.reminder
+                                                                .status ===
+                                                                'not_sent'
+                                                                ? 'admin.send_reminder'
+                                                                : 'admin.resend_reminder',
+                                                        )}
+                                                    </Button>
+                                                )}
                                             {attendee.status !== 'cancelled' ? (
                                                 <ConfirmButton
                                                     label={t(

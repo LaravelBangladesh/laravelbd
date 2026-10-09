@@ -5,6 +5,7 @@ namespace App\Application\Events\Http\Controllers\Admin;
 use App\Application\Events\Http\Requests\Admin\FilterAttendeesRequest;
 use App\Application\Events\ViewModels\EventPresenter;
 use App\Application\Shared\Http\Controllers\Controller;
+use App\Domain\Events\Enums\MailDeliveryStatus;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventQuestion;
@@ -41,6 +42,14 @@ class EventAttendeeController extends Controller
                 'value' => $status->value,
                 'label' => $status->label(),
             ], RegistrationStatus::cases()),
+            'mailStatuses' => array_map(fn (MailDeliveryStatus $status) => [
+                'value' => $status->value,
+                'label' => $status->label(),
+            ], MailDeliveryStatus::cases()),
+            'reminder' => [
+                'available' => $event->acceptsReminders(),
+                'recipients' => $event->reminderRecipients()->count(),
+            ],
         ]);
     }
 
@@ -87,6 +96,7 @@ class EventAttendeeController extends Controller
     {
         return $event->registrations()->getQuery()
             ->when($request->search(), fn (Builder $query, string $term) => $query->whereHas('user', fn (UserQueryBuilder $users) => $users->withTrashed()->search($term)))
-            ->when($request->status(), fn (Builder $query, RegistrationStatus $status) => $query->where('status', $status));
+            ->when($request->status(), fn (Builder $query, RegistrationStatus $status) => $query->where('status', $status))
+            ->when($request->reminder(), fn (Builder $query, MailDeliveryStatus $status) => $query->where('reminder_status', $status));
     }
 }

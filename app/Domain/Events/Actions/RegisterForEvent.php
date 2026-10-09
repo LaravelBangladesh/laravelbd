@@ -2,6 +2,7 @@
 
 namespace App\Domain\Events\Actions;
 
+use App\Domain\Events\Enums\AttendeeMail;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\Models\Event;
 use App\Domain\Events\Models\EventQuestion;
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 final class RegisterForEvent
 {
+    public function __construct(private readonly QueueAttendeeMail $queueMail) {}
+
     /**
      * @param  array<string, mixed>  $answers  keyed by question id
      */
@@ -66,6 +69,7 @@ final class RegisterForEvent
 
                 $existing->answers()->delete();
                 $this->storeAnswers($existing, $questions, $values);
+                $this->confirm($existing);
 
                 return $existing;
             }
@@ -78,9 +82,21 @@ final class RegisterForEvent
             ]);
 
             $this->storeAnswers($registration, $questions, $values);
+            $this->confirm($registration);
 
             return $registration;
         });
+    }
+
+    /**
+     * Only a confirmed seat gets the confirmation email. The job waits for the
+     * transaction to commit.
+     */
+    private function confirm(EventRegistration $registration): void
+    {
+        if ($registration->status === RegistrationStatus::Registered) {
+            ($this->queueMail)($registration, AttendeeMail::Confirmation);
+        }
     }
 
     /**

@@ -26,6 +26,11 @@ const translations = {
     'admin.cancel': 'Cancel',
     'admin.export_csv': 'Export CSV',
     'admin.filter_all_statuses': 'All statuses',
+    'admin.emails': 'Emails',
+    'admin.confirmation': 'Confirmation',
+    'admin.reminder': 'Reminder',
+    'admin.send_reminder': 'Send reminder',
+    'admin.resend_reminder': 'Send reminder again',
 };
 
 const grace: {
@@ -37,6 +42,8 @@ const grace: {
     status: string;
     status_label: string;
     registered_at: string;
+    confirmation: { status: string; label: string; sent_at: string | null };
+    reminder: { status: string; label: string; sent_at: string | null };
     answers: { question_id: string; label: string; value: string }[];
 } = {
     id: 'a1',
@@ -47,6 +54,12 @@ const grace: {
     status: 'registered',
     status_label: 'Registered',
     registered_at: '01 Oct 2026, 18:00',
+    confirmation: {
+        status: 'sent',
+        label: 'Sent',
+        sent_at: '01 Oct 2026, 18:01',
+    },
+    reminder: { status: 'not_sent', label: 'Not sent', sent_at: null },
     answers: [{ question_id: 'q1', label: 'Company', value: 'Cefalo' }],
 };
 
@@ -64,9 +77,15 @@ const statuses = [
     { value: 'cancelled', label: 'Cancelled' },
 ];
 
+const mailStatuses = [
+    { value: 'not_sent', label: 'Not sent' },
+    { value: 'sent', label: 'Sent' },
+];
+
 function renderAttendees(
     data: (typeof grace)[],
-    filters = { q: '', status: '' },
+    filters = { q: '', status: '', reminder: '' },
+    reminder = { available: true, recipients: 1 },
 ) {
     return renderPage(
         <Page
@@ -84,6 +103,8 @@ function renderAttendees(
             }}
             filters={filters}
             statuses={statuses}
+            mailStatuses={mailStatuses}
+            reminder={reminder}
         />,
         { translations },
     );
@@ -184,14 +205,86 @@ describe('AdminEventAttendees', () => {
     });
 
     it('says when nothing matches the search', () => {
-        renderAttendees([], { q: 'zzz', status: '' });
+        renderAttendees([], { q: 'zzz', status: '', reminder: '' });
 
         expect(screen.getByText('Nothing matches.')).toBeInTheDocument();
     });
 
     it('says when nothing matches the status', () => {
-        renderAttendees([], { q: '', status: 'cancelled' });
+        renderAttendees([], { q: '', status: 'cancelled', reminder: '' });
 
         expect(screen.getByText('Nothing matches.')).toBeInTheDocument();
+    });
+
+    it('says when nothing matches the reminder filter', () => {
+        renderAttendees([], { q: '', status: '', reminder: 'sent' });
+
+        expect(screen.getByText('Nothing matches.')).toBeInTheDocument();
+    });
+
+    it('shows both email statuses with when they were sent', () => {
+        renderAttendees([grace]);
+
+        expect(
+            screen.getByRole('columnheader', { name: 'Emails' }),
+        ).toBeInTheDocument();
+        expect(screen.getByText('Sent').closest('[title]')).toHaveAttribute(
+            'title',
+            '01 Oct 2026, 18:01',
+        );
+        expect(screen.getByText('Not sent').closest('span[title]')).toBeNull();
+    });
+
+    it('sends one attendee the reminder and reports a refusal', async () => {
+        const user = userEvent.setup();
+
+        renderAttendees([grace]);
+
+        await user.click(
+            screen.getAllByRole('button', { name: 'Send reminder' })[1],
+        );
+
+        const [url, data, options] = routerMock.post.mock.calls[0];
+
+        expect(url).toBe('/admin/events/e1/registrations/a1/reminder');
+        expect(data).toEqual({});
+        expect(options).toMatchObject({ preserveScroll: true });
+
+        options.onError({ registration: 'The event has started.' });
+
+        expect(toast.error).toHaveBeenCalledWith('The event has started.');
+    });
+
+    it('offers the reminder again once sent, and not while queued or cancelled', () => {
+        renderAttendees([
+            {
+                ...grace,
+                reminder: { status: 'sent', label: 'Sent', sent_at: 'x' },
+            },
+            {
+                ...grace,
+                id: 'a3',
+                reminder: { status: 'queued', label: 'Queued', sent_at: null },
+            },
+            alan,
+        ]);
+
+        expect(
+            screen.getAllByRole('button', { name: 'Send reminder again' }),
+        ).toHaveLength(1);
+        expect(
+            screen.getAllByRole('button', { name: 'Send reminder' }),
+        ).toHaveLength(1);
+    });
+
+    it('hides reminders once the event no longer takes them', () => {
+        renderAttendees([grace], undefined, {
+            available: false,
+            recipients: 0,
+        });
+
+        expect(
+            screen.queryByRole('button', { name: 'Send reminder' }),
+        ).not.toBeInTheDocument();
     });
 });
