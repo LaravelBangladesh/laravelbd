@@ -10,6 +10,10 @@ const tones: Record<string, 'green' | 'neutral' | 'red'> = {
     waitlisted: 'neutral',
     rejected: 'red',
     cancelled: 'red',
+    sent: 'green',
+    queued: 'neutral',
+    not_sent: 'neutral',
+    failed: 'red',
 };
 
 export function StatusChip({

@@ -6,6 +6,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
+<link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700" rel="stylesheet" />
 <style>
 @media only screen and (max-width: 600px) {
 .inner-body {
@@ -21,6 +22,12 @@ width: 100% !important;
 .button {
 width: 100% !important;
 }
+
+.content-cell,
+.header {
+padding-left: 20px !important;
+padding-right: 20px !important;
+}
 }
 </style>
 {!! $head ?? '' !!}
@@ -31,12 +38,24 @@ width: 100% !important;
 <tr>
 <td align="center">
 <table class="content" width="100%" cellpadding="0" cellspacing="0" role="presentation">
-{!! $header ?? '' !!}
-
 <!-- Email Body -->
 <tr>
 <td class="body" width="100%" cellpadding="0" cellspacing="0" style="border: hidden !important;">
 <table class="inner-body" align="center" width="570" cellpadding="0" cellspacing="0" role="presentation">
+<!-- Brand bar -->
+<tr>
+<td>
+<table class="brand-bar" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+<tr>
+<td class="brand-bar-green">&nbsp;</td>
+<td class="brand-bar-red" width="80">&nbsp;</td>
+</tr>
+</table>
+</td>
+</tr>
+
+{!! $header ?? '' !!}
+
 <!-- Body content -->
 <tr>
 <td class="content-cell">

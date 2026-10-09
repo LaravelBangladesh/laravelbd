@@ -27,3 +27,16 @@ test('the email change mail carries the code and the confirmation link', functio
         false,
     );
 });
+
+test('identity mails render with the brand layout and a boxed code', function (string $mailable) {
+    $mail = new $mailable('112233', 'https://laravelbd.test/magic/abc', 'jane@example.com');
+
+    $mail->assertSeeInHtml('class="brand-bar"', false);
+    $mail->assertSeeInHtml('<span class="wordmark-red"', false);
+    $mail->assertSeeInHtml('Bangladesh</span>', false);
+    $mail->assertSeeInHtml('class="code-value"', false);
+    $mail->assertSeeInText(__('auth.mail.code_label').': 112233');
+})->with([
+    'login challenge' => [LoginChallengeMail::class],
+    'email change' => [EmailChangeMail::class],
+]);

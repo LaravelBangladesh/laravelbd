@@ -5,6 +5,7 @@ namespace App\Domain\Events\Models;
 use App\Domain\Cfp\Models\TalkProposal;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
+use App\Domain\Events\Enums\MailDeliveryStatus;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Events\QueryBuilders\EventQueryBuilder;
 use App\Domain\Identity\Models\User;
@@ -154,6 +155,19 @@ class Event extends Model
     }
 
     /**
+     * Registered attendees still waiting for the reminder, including those
+     * whose last one failed.
+     *
+     * @return HasMany<EventRegistration, $this>
+     */
+    public function reminderRecipients(): HasMany
+    {
+        return $this->registrations()
+            ->where('status', RegistrationStatus::Registered)
+            ->whereIn('reminder_status', [MailDeliveryStatus::NotSent, MailDeliveryStatus::Failed]);
+    }
+
+    /**
      * @return HasMany<EventQuestion, $this>
      */
     public function questions(): HasMany
@@ -197,6 +211,11 @@ class Event extends Model
     public function acceptsRegistrations(): bool
     {
         return $this->isPublished() && $this->isUpcoming() && $this->registration_enabled;
+    }
+
+    public function acceptsReminders(): bool
+    {
+        return $this->isPublished() && $this->starts_at->isFuture();
     }
 
     public function isFull(): bool

@@ -40,7 +40,7 @@ describe('PasskeyVerify', () => {
         renderPage(<PasskeyVerify />);
 
         expect(
-            screen.getByRole('button', { name: /Sign in with a passkey/ }),
+            screen.getByRole('button', { name: /Log In with a passkey/ }),
         ).toBeInTheDocument();
         expect(screen.getByText('Or continue with email')).toBeInTheDocument();
     });
@@ -99,7 +99,7 @@ describe('PasskeyVerify', () => {
         renderPage(<PasskeyVerify />);
 
         await user.click(
-            screen.getByRole('button', { name: /Sign in with a passkey/ }),
+            screen.getByRole('button', { name: /Log In with a passkey/ }),
         );
 
         expect(verify).toHaveBeenCalled();
@@ -132,7 +132,7 @@ describe('PasskeyVerify', () => {
         );
 
         expect(
-            screen.getByRole('button', { name: /Sign in with a passkey/ }),
+            screen.getByRole('button', { name: /Log In with a passkey/ }),
         ).toBeInTheDocument();
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Events\Models;
 
+use App\Domain\Events\Enums\MailDeliveryStatus;
 use App\Domain\Events\Enums\RegistrationStatus;
 use App\Domain\Identity\Models\User;
 use App\Domain\Shared\Concerns\HasUuidPrimaryKey;
@@ -19,6 +20,10 @@ use Illuminate\Support\Carbon;
  * @property string $user_id
  * @property RegistrationStatus $status
  * @property Carbon|null $registered_at
+ * @property MailDeliveryStatus $confirmation_status
+ * @property Carbon|null $confirmation_sent_at
+ * @property MailDeliveryStatus $reminder_status
+ * @property Carbon|null $reminder_sent_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -29,6 +34,14 @@ class EventRegistration extends Model
     use HasFactory, HasUuidPrimaryKey;
 
     /**
+     * @var array<string, string>
+     */
+    protected $attributes = [
+        'confirmation_status' => 'not_sent',
+        'reminder_status' => 'not_sent',
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -36,6 +49,10 @@ class EventRegistration extends Model
         return [
             'status' => RegistrationStatus::class,
             'registered_at' => 'datetime',
+            'confirmation_status' => MailDeliveryStatus::class,
+            'confirmation_sent_at' => 'datetime',
+            'reminder_status' => MailDeliveryStatus::class,
+            'reminder_sent_at' => 'datetime',
         ];
     }
 

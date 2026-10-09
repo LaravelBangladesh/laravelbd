@@ -56,7 +56,7 @@ test('staff see an event\'s attendees 25 a page', function () {
             ->where('attendees.data.0.mobile_number', '+8801712345678')
             ->where('attendees.data.0.status', 'registered')
             ->where('attendees.data.0.registered_at', fn (string $value) => $value !== '')
-            ->where('filters', ['q' => '', 'status' => ''])
+            ->where('filters', ['q' => '', 'status' => '', 'reminder' => ''])
             ->has('statuses', 3));
 
     $this->actingAs($moderator)
