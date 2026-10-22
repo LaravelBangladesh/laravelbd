@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
-FROM php:8.5-fpm-trixie AS base
+# Pinned to the patch release: 8.5.12 fixes CVE-2026-109618 and CVE-2026-109619
+# (PHP2Shell). Bump deliberately; a floating 8.5 tag can be served from a stale cache.
+FROM php:8.5.12-fpm-trixie AS base
 
 ARG UID=1000
 ARG GID=1000
