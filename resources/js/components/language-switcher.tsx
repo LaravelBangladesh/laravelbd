@@ -19,12 +19,57 @@ import { cn } from '@/lib/utils';
 export function LanguageSwitcher({
     className = '',
     bare = false,
+    segmented = false,
 }: {
     className?: string;
     bare?: boolean;
+    segmented?: boolean;
 }) {
     const { locale, locales } = usePage().props;
     const t = useTrans();
+
+    if (segmented) {
+        return (
+            <div
+                className={cn(
+                    'font-jetbrains flex items-center rounded-[0.25rem] bg-[#eeeeed] p-0.5 text-[13px]',
+                    className,
+                )}
+            >
+                {Object.entries(locales).map(([value, label]) => {
+                    const selected = value === locale;
+
+                    return (
+                        <button
+                            key={value}
+                            type="button"
+                            aria-pressed={selected}
+                            aria-label={`${t('nav.language')}: ${label}`}
+                            className={cn(
+                                'rounded-[0.125rem] px-2 py-1 tracking-wide uppercase transition-colors',
+                                selected
+                                    ? 'bg-white font-bold text-[#1a1c1c] shadow-sm'
+                                    : 'text-[#5e3f3a] hover:text-[#1a1c1c]',
+                            )}
+                            onClick={() => {
+                                if (selected) {
+                                    return;
+                                }
+
+                                router.post(
+                                    '/locale',
+                                    { locale: value },
+                                    { preserveScroll: true },
+                                );
+                            }}
+                        >
+                            {value}
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    }
 
     const field = (
         <Listbox

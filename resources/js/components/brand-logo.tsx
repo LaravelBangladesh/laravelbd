@@ -5,9 +5,11 @@ import { cn } from '@/lib/utils';
 export function BrandLogo({
     className = '',
     onDark = false,
+    compact = false,
 }: {
     className?: string;
     onDark?: boolean;
+    compact?: boolean;
 }) {
     const t = useTrans();
 
@@ -16,19 +18,18 @@ export function BrandLogo({
             href="/"
             aria-label={t('app.name')}
             className={cn(
-                'min-w-0 text-[1.05rem] leading-none font-medium tracking-tight sm:text-[1.35rem]',
+                'min-w-0 text-[1.05rem] leading-none font-semibold tracking-tight sm:text-[1.35rem]',
                 className,
             )}
         >
             <span className="text-brand-red">Laravel</span>
             <span
                 className={cn(
-                    'max-[22.5rem]:hidden',
+                    !compact && 'max-[22.5rem]:hidden',
                     onDark ? 'text-white' : 'text-brand-green',
                 )}
             >
-                {' '}
-                Bangladesh
+                {compact ? ' BD' : ' Bangladesh'}
             </span>
         </Link>
     );

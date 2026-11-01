@@ -158,7 +158,7 @@ export function Mesh({ className }: { className?: string }) {
     );
 }
 
-export { LaravelMark } from '@/components/hero-mark';
+export { HeroGround, LaravelMark } from '@/components/hero-mark';
 
 export function BrandBar({ className }: { className?: string }) {
     return (

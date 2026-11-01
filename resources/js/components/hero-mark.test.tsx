@@ -35,4 +35,12 @@ describe('LaravelMark', () => {
 
         expect(container.firstElementChild).toHaveClass('custom');
     });
+
+    it('keeps the alpana and kantha stitching decorative', () => {
+        const { container } = renderPage(<LaravelMark />);
+
+        expect(
+            container.querySelectorAll('svg[aria-hidden="true"]'),
+        ).toHaveLength(2);
+    });
 });

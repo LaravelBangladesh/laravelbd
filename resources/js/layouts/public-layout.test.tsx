@@ -18,8 +18,23 @@ const translations = {
     'nav.resources': 'Resources',
     'nav.directory': 'Directory',
     'nav.login': 'Log in',
+    'nav.join': 'Join community',
+    'nav.facebook': 'Facebook Group',
+    'nav.showcase': 'Showcase',
+    'nav.est': 'Est. 2012',
+    'nav.github': 'GitHub Repository',
+    'nav.chat': 'Community Chat',
+    'nav.account': 'Account',
     'nav.menu': 'Menu',
     'nav.language': 'Language',
+    'footer.eyebrow': '// Community manifesto',
+    'footer.headline': 'Building Laravel in Bangladesh, together.',
+    'footer.lead': 'A community for Laravel developers in Bangladesh.',
+    'footer.guild': 'Independent Developer Guild · Est. 2012',
+    'footer.hub': 'The central hub for Laravel in Bangladesh.',
+    'footer.connect': 'Connect',
+    'footer.facebook_short': 'Facebook Group',
+    'footer.memorial_caption': '// Jatiyo Sriti Soudho',
     'footer.tagline': 'The Laravel community of Bangladesh.',
     'footer.community': 'Community',
     'footer.attend': 'Attend',
@@ -76,7 +91,7 @@ describe('PublicLayout', () => {
         const nav = screen.getByRole('navigation');
 
         expect(within(nav).getByRole('link', { name: label })).toHaveClass(
-            'text-brand-red',
+            'text-[#bc0003]',
         );
     });
 
@@ -87,6 +102,18 @@ describe('PublicLayout', () => {
             'href',
             '/login',
         );
+
+        const header = document.querySelector('.site-header');
+
+        expect(header).not.toBeNull();
+        expect(
+            within(header as HTMLElement).getByRole('link', {
+                name: 'Facebook Group',
+            }),
+        ).toHaveAttribute(
+            'href',
+            'https://www.facebook.com/groups/laravelbangladesh',
+        );
     });
 
     it('shows the account menu for a signed in user', () => {
@@ -96,6 +123,15 @@ describe('PublicLayout', () => {
         expect(
             screen.queryByRole('link', { name: 'Log in' }),
         ).not.toBeInTheDocument();
+
+        const header = document.querySelector('.site-header');
+
+        expect(header).not.toBeNull();
+        expect(
+            within(header as HTMLElement).getByRole('link', {
+                name: 'Facebook Group',
+            }),
+        ).toBeInTheDocument();
     });
 
     it('toggles the mobile menu', async () => {
@@ -147,17 +183,21 @@ describe('PublicLayout', () => {
             .getAllByRole('link', { name: 'Events' })
             .filter((link) => link.className.includes('px-3'));
 
-        expect(active[0]).toHaveClass('text-brand-red');
+        expect(active[0]).toHaveClass('text-[#bc0003]');
     });
 
-    it('renders the footer with the app version', () => {
+    it('renders the footer statement without a version number', () => {
         renderLayout({ version: '9.9.9' });
 
-        expect(screen.getByText('v9.9.9')).toBeInTheDocument();
         expect(
-            screen.getByText('The Laravel community of Bangladesh.'),
+            screen.getByRole('heading', {
+                name: 'Building Laravel in Bangladesh, together.',
+            }),
         ).toBeInTheDocument();
-        expect(screen.getByText('(c) Laravel Bangladesh')).toBeInTheDocument();
+        expect(
+            screen.getByText(/\(c\) Laravel Bangladesh/),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('v9.9.9')).not.toBeInTheDocument();
     });
 
     it('links to the terms and privacy pages from the footer', () => {
@@ -176,12 +216,17 @@ describe('PublicLayout', () => {
     it('links to the community facebook group', () => {
         renderLayout();
 
-        expect(
-            screen.getByRole('link', { name: 'Join our Facebook group' }),
-        ).toHaveAttribute(
-            'href',
-            'https://www.facebook.com/groups/laravelbangladesh',
-        );
+        const links = screen.getAllByRole('link', {
+            name: 'Join our Facebook group',
+        });
+
+        expect(links.length).toBeGreaterThan(0);
+        for (const link of links) {
+            expect(link).toHaveAttribute(
+                'href',
+                'https://www.facebook.com/groups/laravelbangladesh',
+            );
+        }
     });
 
     it('shows the trademark disclaimer', () => {
@@ -197,6 +242,7 @@ describe('PublicLayout', () => {
 
         expect(screen.getByText('Community')).toBeInTheDocument();
         expect(screen.getByText('Attend')).toBeInTheDocument();
+        expect(screen.getByText('Connect')).toBeInTheDocument();
         expect(screen.getAllByText('Resources').length).toBeGreaterThan(1);
     });
 
@@ -232,7 +278,7 @@ describe('PublicLayout', () => {
         renderLayout();
 
         expect(
-            screen.getAllByRole('button', { name: 'Language' }).length,
+            screen.getAllByRole('button', { name: /Language/ }).length,
         ).toBeGreaterThan(0);
     });
 });

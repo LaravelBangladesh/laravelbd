@@ -62,6 +62,7 @@ describe('About', () => {
         renderPage(<Page stats={stats} json_ld={[]} />, { translations });
 
         expect(screen.getByText('A community of builders')).toBeInTheDocument();
+        expect(screen.getByText('4,200')).toBeInTheDocument();
         expect(screen.getByText('42')).toBeInTheDocument();
         expect(screen.getByText('88')).toBeInTheDocument();
     });

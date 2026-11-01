@@ -15,7 +15,7 @@ test('visitors can switch locale', function () {
             ->where('locale', 'bn')
             ->where(
                 'translations',
-                fn ($translations) => $translations['home.hero.title'] === '২০১২ থেকে একসাথে বাংলাদেশের Laravel ডেভেলপাররা'
+                fn ($translations) => $translations['home.hero.title'] === '২০১২ থেকে একসাথে কোড গড়ছে বাংলাদেশের Laravel ডেভেলপাররা'
             )
         );
 });
